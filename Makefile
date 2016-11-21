@@ -6,7 +6,7 @@
 #	Makefile										#
 #												#
 #################################################################################################
-FLAGS	= -std=c++11 -g -Wall -Wno-unused-variable -Wno-unused-function
+FLAGS	= -std=c++11 -g -Wall -Wno-unused-variable -Wno-unused-function -Wno-sign-compare
 LINK	= 
 SRC	= $(wildcard *.cpp)
 OBJ	= $(SRC:.cpp=.o)

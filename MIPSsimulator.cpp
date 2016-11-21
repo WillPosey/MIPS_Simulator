@@ -8,6 +8,9 @@
  #include "MainMemory.h"
  #include "ProgramLoader.h"
  #include "CycleWriter.h"
+ #include "InstructionQueue.h"
+ #include "BranchTargetBuffer.h"
+ #include "InstructionFetch.h"
  #include <iostream>
 
 using namespace std;
@@ -31,6 +34,16 @@ int main(int argc, char** argv)
         cycleOutput.SetTraceParameter(argv[3]);
     else
         cycleOutput.SetTraceParameter("all");
+
+    InstructionQueue instrQ;
+    BranchTargetBuffer btb;
+    InstructionFetch IF (memory, instrQ, btb);
+
+    for(int i=0; i<20; i++)
+        IF.RunCycle();
+
+    cout << instrQ.GetContents() << endl;
+    cout << btb.GetContent() << endl;
 
 	return 0;
 }

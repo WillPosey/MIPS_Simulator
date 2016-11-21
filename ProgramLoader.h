@@ -30,11 +30,12 @@ public:
             binStream.seekg (0, binStream.end);
             int totalBytes = binStream.tellg();
             binStream.seekg (0, binStream.beg);
-            int lastAddress = totalBytes + ADDRESS_START;
+            int lastAddress = totalBytes + ADDRESS_START - 4;
 
             /* Fill memory with instructions and data */
             for(int address=ADDRESS_START; address<=lastAddress; address+=4)
             {
+                memory[address] = 0;
                 for(int byteNum=3; byteNum>=0; byteNum--)
                 {
                     binStream.read((char*)&byte, 1);

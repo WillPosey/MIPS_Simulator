@@ -74,6 +74,8 @@ void BranchTargetBuffer::CreateEntry(int srcAddress, int destAddress, bool predi
         numEntries++;
         indexHashTable[newEntry] = numEntries;
         reverseIndexHashTable[numEntries] = newEntry;
+        if(numEntries == 1)
+            LRU = MRU = newEntry;
     }
     else
     {
@@ -109,7 +111,7 @@ string BranchTargetBuffer::GetContent()
     for(int i=1; i<=numEntries; i++)
     {
         content += GetEntryString(reverseIndexHashTable[i]);
-        if(i!=numEntries-1)
+        if(i!=numEntries)
             content += "\r\n";
     }
     return content;
@@ -150,6 +152,7 @@ string BranchTargetBuffer::GetEntryString(BTB_Entry* entry)
  **************************************************************/
 BTB_Entry* BranchTargetBuffer::RemoveLRU()
 {
+    /* LRU only removed when BTB full, so its guaranteed that LRU has right pointer */
     BTB_Entry* oldLRU = LRU;
     LRU = LRU->right;
     LRU->left = NULL;
@@ -163,15 +166,27 @@ BTB_Entry* BranchTargetBuffer::RemoveLRU()
  **************************************************************/
 void BranchTargetBuffer::UpdateMRU(int srcAddress)
 {
+    /* Because UpdateMRU is called for any hit, could happen for nay size of BTB */
     BTB_Entry* accessedEntry = hashTable[srcAddress];
-    accessedEntry->right->left = accessedEntry->left;
-    if(LRU == accessedEntry)
+
+    /* Check if already MRU */
+    if(MRU == accessedEntry)
+        return;
+
+    /* Check if LRU and not only entry */
+    if(LRU == accessedEntry && numEntries > 1)
     {
         accessedEntry->right->left = NULL;
         LRU = accessedEntry->right;
     }
+    /* Not LRU, link siblings in list */
     else
-        accessedEntry->left->right = accessedEntry->right;
+    {
+        if(accessedEntry->right)
+            accessedEntry->right->left = accessedEntry->left;
+        if(accessedEntry->left)
+            accessedEntry->left->right = accessedEntry->right;
+    }
     PlaceMRU(accessedEntry);
 }
 

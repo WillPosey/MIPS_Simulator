@@ -16,22 +16,34 @@ using namespace std;
 class InstructionQueue
 {
 public:
-    Write(string fetchedInstr){ instrQueue.push(fetchedInstr); }
-    string Read(){ instrQueue.pop(); }
+    void Write(string fetchedInstr)
+    {
+        instrQueue.push(fetchedInstr);
+    }
+
+    string Read()
+    {
+        string nextInstruction = instrQueue.front();
+        instrQueue.pop();
+        return nextInstruction;
+    }
+
     string GetContents()
     {
         string contents = "IQ:\r\n";
         string temp;
         for(int i=0; i<instrQueue.size(); i++)
         {
-            temp = instrQueue.pop();
-            contents += temp;
-            if(i!=instrQueue.size()-1)
+            temp = instrQueue.front();
+            instrQueue.pop();
+            contents += "[" + temp + "]";
+            if(i!=instrQueue.size())
                 contents += "\r\n";
             instrQueue.push(temp);
         }
         return contents;
     }
+
 private:
     queue<string> instrQueue;
 };

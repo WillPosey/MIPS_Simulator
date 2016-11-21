@@ -29,8 +29,8 @@ struct BTB_Entry
     BTB_Entry(int src, int dest, bool predict): srcAddress(src),
                                                 destAddress(dest),
                                                 prediction(predict),
-                                                left(this),
-                                                right(this)
+                                                left(NULL),
+                                                right(NULL)
                                                 {}
 };
 
