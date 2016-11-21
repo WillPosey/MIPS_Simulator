@@ -33,6 +33,9 @@ InstructionFetch::InstructionFetch(MainMemory& memRef, InstructionQueue& instrQR
  **************************************************************/
 void InstructionFetch::RunCycle()
 {
+    if(programCounter >= DATA_START)
+        return;
+
     GetNextInstruction();
     if(IsBranchInstruction())
     {

@@ -13,6 +13,8 @@
 
 #include <vector>
 #include <cstdint>
+#include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -47,6 +49,26 @@ public:
 
         return memoryContent[realIndex];
     }
+
+    /* Returns a string with the integer value at each memory location */
+    string GetDataContent()
+    {
+        int startIndex = ( (DATA_START - ADDRESS_START) / 4.0 );
+        int address = DATA_START;
+
+        string content = "Data Segment:\r\n";
+        content += to_string(DATA_START) + ":\t";
+
+        for(int i=startIndex; i<memoryContent.size(); i++)
+        {
+            content += to_string((int32_t) memoryContent[i] );
+            if(i!=memoryContent.size())
+                content += "\t";
+            address+=4;
+        }
+        return content;
+    }
+
 private:
     vector<uint32_t> memoryContent;
 };

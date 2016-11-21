@@ -11,6 +11,7 @@
  #include "InstructionQueue.h"
  #include "BranchTargetBuffer.h"
  #include "InstructionFetch.h"
+ #include "RegisterFile.h"
  #include <iostream>
 
 using namespace std;
@@ -38,6 +39,7 @@ int main(int argc, char** argv)
     InstructionQueue instrQ;
     BranchTargetBuffer btb;
     InstructionFetch IF (memory, instrQ, btb);
+    RegisterFile RF;
 
 	return 0;
 }
