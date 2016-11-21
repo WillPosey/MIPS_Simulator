@@ -39,12 +39,6 @@ int main(int argc, char** argv)
     BranchTargetBuffer btb;
     InstructionFetch IF (memory, instrQ, btb);
 
-    for(int i=0; i<20; i++)
-        IF.RunCycle();
-
-    cout << instrQ.GetContents() << endl;
-    cout << btb.GetContent() << endl;
-
 	return 0;
 }
 
