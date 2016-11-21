@@ -20,14 +20,14 @@ public:
     string Read(){ instrQueue.pop(); }
     string GetContents()
     {
-        string contents = "";
+        string contents = "IQ:\r\n";
         string temp;
         for(int i=0; i<instrQueue.size(); i++)
         {
             temp = instrQueue.pop();
             contents += temp;
             if(i!=instrQueue.size()-1)
-                contents += endl;
+                contents += "\r\n";
             instrQueue.push(temp);
         }
         return contents;

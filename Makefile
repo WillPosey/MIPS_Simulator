@@ -23,4 +23,4 @@ $(TARGET)	: $(OBJ)
 .PHONY		: clean
 
 clean 		: 
-		rm *.o $(TARGET)
+		rm -f *.o $(TARGET)
