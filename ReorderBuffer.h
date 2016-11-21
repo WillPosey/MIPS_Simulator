@@ -11,7 +11,6 @@
 #define NUM_ROB_ENTRIES 6
 
 #include <string>
-#include <queue>
 
 using namespace std;
 
@@ -75,7 +74,7 @@ public:
 private:
     void ClearEntry(int entryNum);
 
-    queue<ROB_Entry> rob;
+    ROB_Entry rob[NUM_ROB_ENTRIES];
     int numEntries;
     int robHead;
     int robNextEntry;
