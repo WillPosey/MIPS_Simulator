@@ -32,7 +32,10 @@ Commit::Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& rob
  **************************************************************/
 void Commit::RunCycle()
 {
+    static int i=0;
 
+    if(++i == 25)
+        programFinished = true;
 }
 
 /**************************************************************

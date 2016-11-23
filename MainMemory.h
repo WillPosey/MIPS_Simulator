@@ -66,6 +66,7 @@ public:
                 content += "\t";
             address+=4;
         }
+        content += "\r\n";
         return content;
     }
 

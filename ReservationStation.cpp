@@ -16,7 +16,11 @@ using namespace std;
  **************************************************************/
 void ReservationStation::CreateEntry(RS_Entry newEntry)
 {
-
+    if(numEntries < 10)
+    {
+        numEntries++;
+        rs.push_back(newEntry);
+    }
 }
 
 /**************************************************************
@@ -26,5 +30,9 @@ void ReservationStation::CreateEntry(RS_Entry newEntry)
  **************************************************************/
 string ReservationStation::GetContent()
 {
-
+    string content = "RS:\r\n";
+    vector<RS_Entry>::iterator it;
+    for(it=rs.begin(); it!=rs.end(); it++)
+        content += "[" + it->instruction.instructionString + "]\r\n";
+    return content;
 }

@@ -33,6 +33,7 @@ struct RS_Entry
 class ReservationStation
 {
 public:
+    ReservationStation(){numEntries = 0;}
 
     /* Operator overload for setting RS entry (ReservationStation[entryNum] = entry;) */
     RS_Entry& operator[] (unsigned int entryNum)
@@ -52,10 +53,10 @@ public:
         return rs[entryNum];
     }
 
-    ReservationStation();
     bool Available(){return (numEntries < 10);}
     void CreateEntry(RS_Entry newEntry);
     string GetContent();
+
 private:
     vector<RS_Entry> rs;
     int numEntries;

@@ -23,7 +23,7 @@ public:
      **************************************************************/
     bool NotEmpty()
     {
-        return (instrQueue.size() == 0);
+        return (instrQueue.size() != 0);
     }
 
     /**************************************************************
@@ -72,9 +72,7 @@ public:
         {
             temp = instrQueue.front();
             instrQueue.pop();
-            contents += "[" + temp.instructionString + "]";
-            if(i!=instrQueue.size())
-                contents += "\r\n";
+            contents += "[" + temp.instructionString + "]\r\n";
             instrQueue.push(temp);
         }
         return contents;

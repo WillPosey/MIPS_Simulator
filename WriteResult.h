@@ -18,7 +18,7 @@
 
 using namespace std;
 
-class WriteResult : virtual PipelineStage
+class WriteResult : public virtual PipelineStage
 {
 public:
     WriteResult(ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);

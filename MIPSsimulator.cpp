@@ -10,8 +10,15 @@
  #include "CycleWriter.h"
  #include "InstructionQueue.h"
  #include "BranchTargetBuffer.h"
- #include "InstructionFetch.h"
+ #include "ReservationStation.h"
+ #include "ReorderBuffer.h"
  #include "RegisterFile.h"
+ #include "InstructionFetch.h"
+ #include "InstructionDecode.h"
+ #include "Execute.h"
+ #include "WriteResult.h"
+ #include "Commit.h"
+
  #include <iostream>
 
 using namespace std;
@@ -47,41 +54,21 @@ int main(int argc, char** argv)
     InstructionFetch IF (memory, IQ, BTB, CDB);
     InstructionDecode ID (IQ, RS, ROB, RF, CDB);
     Execute EX (RS, ROB, CDB);
-    WriteResult WR(RS, ROB, CDB);
-    Commit CM (memory, RS, ROB, RF, CDB, complete);
+    WriteResult WR (RS, ROB, CDB);
+    Commit CM (memory, RS, ROB, RF, CDB, programFinished);
 
-    vector<PipelineStage> pipeline[5] = {IF, ID, EX, WR, CM};
+    vector<PipelineStage*> pipeline = {&IF, &ID, &EX, &WR, &CM};
 
     while(!programFinished)
     {
-        vector<PipelineStage>::iterator it;
-        for(it=pipeline.begin(); it!=pipeline.end(); it++)
-            *it.RunCycle();
-        for(it=pipeline.begin(); it!=pipeline.end(); it++)
-            *it.CompleteCycle();
-        for(it=pipeline.begin(); it!=pipeline.end(); it++)
-            *it.ReadCDB();
-
-        /*
-        IF.RunCycle();
-        ID.RunCycle();
-        EX.RunCycle();
-        WR.RunCycle();
-        CM.RunCycle();
-
-        IF.CompleteCycle();
-        ID.CompleteCycle();
-        EX.CompleteCycle();
-        WR.CompleteCycle();
-        CM.CompleteCycle();
-
-        IF.ReadCDB();
-        ID.ReadCDB();
-        EX.ReadCDB();
-        WR.ReadCDB();
-        CM.ReadCDB();
-        */
-
+        vector<PipelineStage*>::iterator stage;
+        for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
+            (*stage)->RunCycle();
+        for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
+            (*stage)->CompleteCycle();
+        for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
+            (*stage)->ReadCDB();
+        cycleOutput.WriteCycle(IQ, RS, ROB, BTB, RF, memory, programFinished);
     }
 
 	return 0;

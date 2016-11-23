@@ -67,8 +67,7 @@ public:
                 if(j!=8)
                     content += "\t";
             }
-            if(i!=3)
-                content += "\r\n";
+            content += "\r\n";
         }
         return content;
     }

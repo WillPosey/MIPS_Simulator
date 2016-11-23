@@ -20,7 +20,7 @@
 
 using namespace std;
 
-class InstructionDecode : virtual PipelineStage
+class InstructionDecode : public virtual PipelineStage
 {
 public:
     InstructionDecode(InstructionQueue& iqRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef);

@@ -25,6 +25,7 @@ InstructionFetch::InstructionFetch(MainMemory& memRef, InstructionQueue& instrQR
     CDB(CDBRef)
 {
     UpdateProgramCounter(ADDRESS_START);
+    breakFound = false;
 }
 
 /**************************************************************
@@ -34,7 +35,7 @@ InstructionFetch::InstructionFetch(MainMemory& memRef, InstructionQueue& instrQR
  **************************************************************/
 void InstructionFetch::RunCycle()
 {
-    if(programCounter >= DATA_START)
+    if(programCounter >= DATA_START || breakFound)
         return;
 
     GetNextInstruction();
@@ -224,7 +225,10 @@ void InstructionFetch::BinaryStringToInstruction()
                                     + GetBranchOffset(currentInstruction.binary & REGIMM_OFFSET_MASK);
             break;
         case SPECIAL:
-            if( !name.compare("BREAK") || !name.compare("NOP") )
+            if( !name.compare("BREAK") )
+                breakFound = true;
+                break;
+            if(!name.compare("NOP") )
                 break;
             currentInstruction.instructionString += " " + GetRegister((currentInstruction.binary & SPECIAL_RD_MASK)>>SPECIAL_RD_SHIFT) + ", ";
             if( name.compare("SLL") && name.compare("SRL") && name.compare("SRA") )

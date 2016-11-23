@@ -8,6 +8,13 @@
 #ifndef CYCLE_WRITER_H
 #define CYCLE_WRITER_H
 
+#include "InstructionQueue.h"
+#include "ReservationStation.h"
+#include "ReorderBuffer.h"
+#include "BranchTargetBuffer.h"
+#include "RegisterFile.h"
+#include "MainMemory.h"
+
 #include <string>
 #include <fstream>
 
@@ -16,10 +23,11 @@ using namespace std;
 class CycleWriter
 {
 public:
-    CycleWriter(string filename) : outputFilename(filename) {};
+    CycleWriter(string filename){outStream.open(filename);};
     void SetTraceParameter(string traceParam);
+    void WriteCycle(InstructionQueue IQ, ReservationStation RS, ReorderBuffer ROB, BranchTargetBuffer BTB, RegisterFile RF, MainMemory memory, bool finalCycle);
 private:
-    string outputFilename;
+    ofstream outStream;
     int traceStart;
     int traceEnd;
     bool traceAll;

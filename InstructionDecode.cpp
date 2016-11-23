@@ -37,7 +37,6 @@ void InstructionDecode::RunCycle()
 {
     stall = false;
     nop_break = false;
-
     if(IQ.NotEmpty())
     {
         /* Peek at instruction */
@@ -52,7 +51,7 @@ void InstructionDecode::RunCycle()
                 IQ.Pop();
                 robEntry.busy = true;
                 robEntry.instruction = currentInstruction;
-                robEntry.state = Commit;
+                robEntry.state = Cmt;
             }
             else
                 stall = true;
@@ -65,7 +64,8 @@ void InstructionDecode::RunCycle()
                 IQ.Pop();
                 robEntry.busy = true;
                 robEntry.instruction = currentInstruction;
-                robEntry.state = Execute;
+                robEntry.state = Ex;
+                rsEntry.instruction = currentInstruction;
                 /* determine operands, destination, etc */
             }
             else

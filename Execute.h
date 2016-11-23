@@ -18,15 +18,15 @@
 
 using namespace std;
 
-class Execute : virtual PipelineStage
+class Execute : public virtual PipelineStage
 {
 public:
     Execute(ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);
     void RunCycle();
     void CompleteCycle();
     void ReadCDB();
-private:
 
+private:
     ReservationStation& RS;
     ReorderBuffer& ROB;
     CommonDataBus& CDB;

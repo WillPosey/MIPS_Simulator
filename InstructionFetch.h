@@ -20,7 +20,7 @@
 
 using namespace std;
 
-class InstructionFetch : virtual PipelineStage
+class InstructionFetch : public virtual PipelineStage
 {
 public:
     InstructionFetch(MainMemory& memRef, InstructionQueue& instrQRef, BranchTargetBuffer& btbRef, CommonDataBus& cdb);
@@ -59,6 +59,7 @@ private:
     BranchTargetBuffer& BTB;
     CommonDataBus& CDB;
     int programCounter;
+    bool breakFound;
 
     Instruction currentInstruction;
 };

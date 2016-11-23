@@ -14,44 +14,34 @@ using namespace std;
  * 		ReorderBuffer::CreateEntry
  *
  **************************************************************/
-int ReorderBuffer::CreateEntry(string instruction, DestinationType dest, int destAddress)
+int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
 {
-    int createdEntryIndex = robNextEntry;
+    if(numEntries < 6)
+    {
+        int createdEntryIndex = robNextEntry;
+        robIndexes[createdEntryIndex] = rob.size();
+        rob.push_back(newEntry);
 
-    ClearEntry(robNextEntry);
-    rob[robNextEntry].instruction = instruction;
-    rob[robNextEntry].destination = dest;
-    rob[robNextEntry].destinationAddress = destAddress;
+        numEntries++;
+        robNextEntry++;
+        if(robNextEntry == 6)
+            robNextEntry = 0;
 
-    numEntries++;
-    robNextEntry++;
-    if(robNextEntry == NUM_ROB_ENTRIES)
-        robNextEntry = 0;
-
-    return createdEntryIndex;
+        return createdEntryIndex;
+    }
+    return -1;
 }
 
 /**************************************************************
  *
- * 		ReorderBuffer::ClearEntry
+ * 		ReorderBuffer::GetContent
  *
  **************************************************************/
-void ReorderBuffer::ClearEntry(int entryNum)
+string ReorderBuffer::GetContent()
 {
-    rob[robNextEntry].busy = false;
-    rob[robNextEntry].instruction = "";
-    rob[robNextEntry].state = Execute;
-    rob[robNextEntry].destination = Register;
-    rob[robNextEntry].destinationAddress = 0;
-    rob[robNextEntry].value = 0;
-}
-
-/**************************************************************
- *
- * 		ReorderBuffer::UpdateEntry
- *
- **************************************************************/
-void ReorderBuffer::UpdateEntry(int entryNum, ROB_State state, int value = 0, int destAddress = 0)
-{
-
+    string content = "ROB:\r\n";
+    vector<ROB_Entry>::iterator it;
+    for(it=rob.begin(); it!=rob.end(); it++)
+        content += "[" + it->instruction.instructionString + "]\r\n";
+    return content;
 }

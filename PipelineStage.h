@@ -14,6 +14,7 @@ using namespace std;
 
 class PipelineStage
 {
+public:
     virtual void RunCycle() = 0;
     virtual void CompleteCycle() = 0;
     virtual void ReadCDB() = 0;

@@ -8,9 +8,13 @@
 #ifndef REORDER_BUF_H
 #define REORDER_BUF_H
 
+#include "MIPSdefs.h"
+
 #define NUM_ROB_ENTRIES 6
 
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 using namespace std;
 
@@ -18,9 +22,9 @@ static const string robNames[] = {"ROB0", "ROB1", "ROB2", "ROB3", "ROB4", "ROB5"
 
 typedef enum
 {
-    Execute,
-    WriteResult,
-    Commit
+    Ex,
+    Wr,
+    Cmt
 } ROB_State;
 
 typedef enum
@@ -40,7 +44,7 @@ struct ROB_Entry
     int value;
 
     ROB_Entry():    busy(false),
-                    state(Execute),
+                    state(Ex),
                     destination(Register),
                     destinationAddress(0),
                     addressPresent(false),
@@ -51,7 +55,7 @@ struct ROB_Entry
 class ReorderBuffer
 {
 public:
-    ReorderBuffer(){numEntries = robHead = robNextEntry = 0;}
+    ReorderBuffer(){numEntries = robNextEntry = 0;}
 
     /* Operator overload for setting ROB entry (ReorderBuffer[entryNum] = entry;) */
     ROB_Entry& operator[] (unsigned int entryNum)
@@ -73,11 +77,12 @@ public:
 
     bool Available(){return (numEntries < 6);}
     int CreateEntry(ROB_Entry newEntry);
-    void UpdateEntry(int entryNum, ROB_State state, int value = 0, int destAddress = 0);
+    string GetContent();
 private:
     void ClearEntry(int entryNum);
 
-    ROB_Entry rob[NUM_ROB_ENTRIES];
+    vector<ROB_Entry> rob;
+    unordered_map<int,int> robIndexes;  /* maps rob entry num to index in vector (rob head always at vector index 0) */
     int numEntries;
     int robHead;
     int robNextEntry;

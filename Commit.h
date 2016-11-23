@@ -20,7 +20,7 @@
 
 using namespace std;
 
-class Commit : virtual PipelineStage
+class Commit : public virtual PipelineStage
 {
 public:
     Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef, bool& progComplete);
