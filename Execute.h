@@ -49,10 +49,12 @@ public:
     void ReadCDB();
 
 private:
-    void
+    bool CheckOperandsReady(int rsIndex);
+    void ExecuteInstruction(int rsIndex);
 
     vector<CDB_Entry> cdbWrite;
     vector<ExListenCDB> cdbListen;
+    vector<ExResult> completeEx;
     ReservationStation& RS;
     ReorderBuffer& ROB;
     CommonDataBus& CDB;
