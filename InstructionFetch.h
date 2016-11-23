@@ -8,31 +8,35 @@
 #ifndef INSTR_FETCH_H
 #define INSTR_FETCH_H
 
+#include "PipelineStage.h"
 #include "MIPSdefs.h"
 #include "MainMemory.h"
 #include "InstructionQueue.h"
 #include "BranchTargetBuffer.h"
+#include "CommonDataBus.h"
 
 #include <string>
 #include <fstream>
 
 using namespace std;
 
-class InstructionFetch
+class InstructionFetch : virtual PipelineStage
 {
 public:
-    InstructionFetch(MainMemory& memRef, InstructionQueue& instrQRef, BranchTargetBuffer& btbRef);
+    InstructionFetch(MainMemory& memRef, InstructionQueue& instrQRef, BranchTargetBuffer& btbRef, CommonDataBus& cdb);
     void RunCycle();
+    void CompleteCycle();
+    void ReadCDB();
     void UpdateProgramCounter(int PC);
 private:
+    void CheckBTB();
     void IncrementProgramCounter();
     void GetNextInstruction();
     void WriteToQueue();
-    bool IsBranchInstruction();
 
     void GetBinaryString();
     void BinaryStringToInstruction();
-    void GetInstructionString();
+    void GetInstructionInfo();
 
     string GetOpcode(string binaryString){return binaryString.substr(0,6);}
 	InstructionType GetInstructionType(string opcode);
@@ -51,16 +55,12 @@ private:
 	string GetBranchOffset(uint16_t binary);
 
     MainMemory& memory;
-    InstructionQueue& instrQueue;
-    BranchTargetBuffer& btb;
+    InstructionQueue& IQ;
+    BranchTargetBuffer& BTB;
+    CommonDataBus& CDB;
     int programCounter;
 
-    uint32_t instructionBinary;
-    string instructionBinaryString;
-    string instructionString;
-
-    bool isBranch;
-    int branchDestination;
+    Instruction currentInstruction;
 };
 
 #endif /* INSTR_FETCH_H */

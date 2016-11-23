@@ -14,33 +14,36 @@
 
 using namespace std;
 
+static const string robNames[] = {"ROB0", "ROB1", "ROB2", "ROB3", "ROB4", "ROB5"};
+
 typedef enum
 {
     Execute,
     WriteResult,
-    Commit;
+    Commit
 } ROB_State;
 
 typedef enum
 {
     Register,
-    Memory;
+    Memory
 } DestinationType;
 
 struct ROB_Entry
 {
     bool busy;
-    string instruction;
+    Instruction instruction;
     ROB_State state;
     DestinationType destination;
     int destinationAddress;
+    bool addressPresent;
     int value;
 
     ROB_Entry():    busy(false),
-                    instruction(""),
                     state(Execute),
                     destination(Register),
                     destinationAddress(0),
+                    addressPresent(false),
                     value(0)
                     {}
 };
@@ -50,10 +53,10 @@ class ReorderBuffer
 public:
     ReorderBuffer(){numEntries = robHead = robNextEntry = 0;}
 
-    /* Operator overload for setting register value (ReorderBuffer[entryNum] = entry;) */
+    /* Operator overload for setting ROB entry (ReorderBuffer[entryNum] = entry;) */
     ROB_Entry& operator[] (unsigned int entryNum)
     {
-        if(regNum > 5)
+        if(entryNum > 5)
             return rob[5];
 
         return rob[entryNum];
@@ -62,14 +65,14 @@ public:
     /* Operator overload for getting ROB entry (entry = ReorderBuffer[entryNum];) */
     ROB_Entry operator[] (unsigned int entryNum) const
     {
-        if(regNum > 5)
+        if(entryNum > 5)
             return rob[5];
 
         return rob[entryNum];
     }
 
     bool Available(){return (numEntries < 6);}
-    int CreateEntry(string instruction, DestinationType dest, int destAddress);
+    int CreateEntry(ROB_Entry newEntry);
     void UpdateEntry(int entryNum, ROB_State state, int value = 0, int destAddress = 0);
 private:
     void ClearEntry(int entryNum);

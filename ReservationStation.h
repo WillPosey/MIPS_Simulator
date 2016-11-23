@@ -10,14 +10,18 @@
 
 #define NUM_RS_ENTRIES 10
 
+#include "MIPSdefs.h"
+
 #include <string>
+#include <vector>
 
 using namespace std;
 
 struct RS_Entry
 {
     bool busy;
-    string instruction;
+    Instruction instruction;
+    int cycleNum;
     int Vj;
     int Vk;
     int Qj;
@@ -30,8 +34,31 @@ class ReservationStation
 {
 public:
 
-private:
+    /* Operator overload for setting RS entry (ReservationStation[entryNum] = entry;) */
+    RS_Entry& operator[] (unsigned int entryNum)
+    {
+        if(entryNum >= numEntries)
+            return rs[numEntries-1];
 
+        return rs[entryNum];
+    }
+
+    /* Operator overload for getting RS entry (entry = ReservationStation[entryNum];) */
+    RS_Entry operator[] (unsigned int entryNum) const
+    {
+        if(entryNum >= numEntries)
+            return rs[numEntries-1];
+
+        return rs[entryNum];
+    }
+
+    ReservationStation();
+    bool Available(){return (numEntries < 10);}
+    void CreateEntry(RS_Entry newEntry);
+    string GetContent();
+private:
+    vector<RS_Entry> rs;
+    int numEntries;
 };
 
 #endif /* RES_STA_H */

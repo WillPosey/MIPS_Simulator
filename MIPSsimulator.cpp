@@ -3,7 +3,7 @@
  *
  *      Author: William Posey
  *      Course: CDA 5155
- *      Project 1: MIPS Simulator
+ *      Project 3: MIPS Simulator
  ************************************************/
  #include "MainMemory.h"
  #include "ProgramLoader.h"
@@ -36,10 +36,53 @@ int main(int argc, char** argv)
     else
         cycleOutput.SetTraceParameter("all");
 
-    InstructionQueue instrQ;
-    BranchTargetBuffer btb;
-    InstructionFetch IF (memory, instrQ, btb);
+    InstructionQueue IQ;
+    BranchTargetBuffer BTB;
+    ReservationStation RS;
+    ReorderBuffer ROB;
     RegisterFile RF;
+    CommonDataBus CDB;
+    bool programFinished = false;
+
+    InstructionFetch IF (memory, IQ, BTB, CDB);
+    InstructionDecode ID (IQ, RS, ROB, RF, CDB);
+    Execute EX (RS, ROB, CDB);
+    WriteResult WR(RS, ROB, CDB);
+    Commit CM (memory, RS, ROB, RF, CDB, complete);
+
+    vector<PipelineStage> pipeline[5] = {IF, ID, EX, WR, CM};
+
+    while(!programFinished)
+    {
+        vector<PipelineStage>::iterator it;
+        for(it=pipeline.begin(); it!=pipeline.end(); it++)
+            *it.RunCycle();
+        for(it=pipeline.begin(); it!=pipeline.end(); it++)
+            *it.CompleteCycle();
+        for(it=pipeline.begin(); it!=pipeline.end(); it++)
+            *it.ReadCDB();
+
+        /*
+        IF.RunCycle();
+        ID.RunCycle();
+        EX.RunCycle();
+        WR.RunCycle();
+        CM.RunCycle();
+
+        IF.CompleteCycle();
+        ID.CompleteCycle();
+        EX.CompleteCycle();
+        WR.CompleteCycle();
+        CM.CompleteCycle();
+
+        IF.ReadCDB();
+        ID.ReadCDB();
+        EX.ReadCDB();
+        WR.ReadCDB();
+        CM.ReadCDB();
+        */
+
+    }
 
 	return 0;
 }

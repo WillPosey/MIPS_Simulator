@@ -111,4 +111,28 @@ typedef enum
     NOP=0,SLL=1,SRL=2,SRA=3,BREAK=4,ADD=5,ADDU=6,SUB=7,SUBU=8,AND=9,OR=10,XOR=11,NOR=12,SLT=13,SLTU=14
 } instr_names;
 
+struct BranchPrediction
+{
+    int destination;
+    bool prediction;
+    bool outcome;
+};
+
+struct InstructionInfo
+{
+    InstructionType type;
+    string name;
+    string opcode;
+};
+
+struct Instruction
+{
+    int PC;
+    uint32_t binary;
+    string binaryString;
+    string instructionString;
+    InstructionInfo info;
+    BranchPrediction branchHandle;
+};
+
 #endif //MIPSDEFS_H_

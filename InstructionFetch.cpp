@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 using namespace std;
 
@@ -17,13 +18,13 @@ using namespace std;
  * 		InstructionFetch Constructor
  *
  **************************************************************/
-InstructionFetch::InstructionFetch(MainMemory& memRef, InstructionQueue& instrQRef, BranchTargetBuffer& btbRef)
+InstructionFetch::InstructionFetch(MainMemory& memRef, InstructionQueue& instrQRef, BranchTargetBuffer& BTBRef, CommonDataBus& CDBRef)
 :   memory(memRef),
-    instrQueue(instrQRef),
-    btb(btbRef)
+    IQ(instrQRef),
+    BTB(BTBRef),
+    CDB(CDBRef)
 {
     UpdateProgramCounter(ADDRESS_START);
-    isBranch = false;
 }
 
 /**************************************************************
@@ -37,24 +38,69 @@ void InstructionFetch::RunCycle()
         return;
 
     GetNextInstruction();
-    if(IsBranchInstruction())
+    if(currentInstruction.info.type == BRANCH || currentInstruction.info.type == JUMP)
+        CheckBTB();
+    else
+        IncrementProgramCounter();
+}
+
+/**************************************************************
+ *
+ * 		InstructionFetch::CompleteCycle
+ *
+ **************************************************************/
+void InstructionFetch::CompleteCycle()
+{
+    WriteToQueue();
+}
+
+/**************************************************************
+ *
+ * 		InstructionFetch::ReadCDB
+ *
+ **************************************************************/
+void InstructionFetch::ReadCDB()
+{
+    /* Handle branch misprediction */
+    vector<CDB_Entry>::iterator it;
+    CDB_Entry currentEntry;
+    vector<CDB_Entry> CDBEntries = CDB.Read();
+    for(it=CDBEntries.begin(); it!=CDBEntries.end(); it++)
     {
-        if(btb.Hit(programCounter))
+        currentEntry = *it;
+        if(currentEntry.destination.compare("IQ") == 0)
+            IQ.Flush();
+        else if(currentEntry.destination.compare("PC") == 0)
+            UpdateProgramCounter(currentEntry.value);
+    }
+}
+
+/**************************************************************
+ *
+ * 		InstructionFetch::CheckBTB
+ *
+ **************************************************************/
+void InstructionFetch::CheckBTB()
+{
+    if(BTB.Hit(programCounter))
+    {
+        if(BTB.GetPrediction(programCounter))
         {
-            if(btb.GetPrediction(programCounter))
-                UpdateProgramCounter(btb.GetDestinationAddress(programCounter));
-            else
-                IncrementProgramCounter();
+            UpdateProgramCounter(BTB.GetDestinationAddress(programCounter));
+            currentInstruction.branchHandle.prediction = true;
         }
         else
         {
-            btb.CreateEntry(programCounter, branchDestination, 0);
+            currentInstruction.branchHandle.prediction = false;
             IncrementProgramCounter();
         }
     }
     else
+    {
+        currentInstruction.branchHandle.prediction = (currentInstruction.info.type == JUMP);
+        BTB.CreateEntry(programCounter, currentInstruction.branchHandle.destination, currentInstruction.branchHandle.prediction);
         IncrementProgramCounter();
-    WriteToQueue();
+    }
 }
 
 /**************************************************************
@@ -84,8 +130,12 @@ void InstructionFetch::IncrementProgramCounter()
  **************************************************************/
 void InstructionFetch::GetNextInstruction()
 {
-    instructionBinary = memory[programCounter];
-    GetInstructionString();
+    currentInstruction.binary = 0;
+    currentInstruction.binaryString = "";
+    currentInstruction.PC = programCounter;
+    currentInstruction.instructionString = "";
+    currentInstruction.binary = memory[programCounter];
+    GetInstructionInfo();
 }
 
 /**************************************************************
@@ -95,27 +145,15 @@ void InstructionFetch::GetNextInstruction()
  **************************************************************/
 void InstructionFetch::WriteToQueue()
 {
-    instrQueue.Write(instructionString);
+    IQ.Write(currentInstruction);
 }
 
 /**************************************************************
  *
- * 		InstructionFetch::IsBranchInstruction
+ * 		InstructionFetch::GetInstructionInfo
  *
  **************************************************************/
-bool InstructionFetch::IsBranchInstruction()
-{
-    bool branch = isBranch;
-    isBranch = false;
-    return branch;
-}
-
-/**************************************************************
- *
- * 		InstructionFetch::GetInstructionString
- *
- **************************************************************/
-void InstructionFetch::GetInstructionString()
+void InstructionFetch::GetInstructionInfo()
 {
     GetBinaryString();
     BinaryStringToInstruction();
@@ -133,12 +171,12 @@ void InstructionFetch::GetBinaryString()
     int index = 0;
     for(int bit=31; bit>=0; bit--)
     {
-        bitVal = ( instructionBinary & (1<<bit) ) ? '1' : '0';
+        bitVal = ( currentInstruction.binary & (1<<bit) ) ? '1' : '0';
         instrString[index] = bitVal;
         index++;
     }
     instrString[32] = '\0';
-    instructionBinaryString = string(instrString);
+    currentInstruction.binaryString = string(instrString);
 }
 
 /**************************************************************
@@ -149,54 +187,54 @@ void InstructionFetch::GetBinaryString()
 void InstructionFetch::BinaryStringToInstruction()
 {
     string opcode, name;
-    InstructionType type;
 
-    opcode = GetOpcode(instructionBinaryString);
-    type = GetInstructionType(opcode);
-    name = GetInstructionName(type, opcode, instructionBinaryString, instructionBinary);
-    instructionString = name;
+    opcode = GetOpcode(currentInstruction.binaryString);
+    currentInstruction.info.opcode = opcode;
+    currentInstruction.info.type = GetInstructionType(opcode);
+    name = GetInstructionName(currentInstruction.info.type, opcode, currentInstruction.binaryString, currentInstruction.binary);
+    currentInstruction.info.name = name;
+    currentInstruction.instructionString = name;
 
-    switch(type)
+    switch(currentInstruction.info.type)
     {
         case MEMORY:
-            instructionString += " " + GetRegister((instructionBinary & MEMORY_RT_MASK)>>MEMORY_RT_SHIFT) + ", "
-                                    + GetMemoryOffset(instructionBinary & MEMORY_OFFSET_MASK) + "("
-                                    + GetRegister((instructionBinary & MEMORY_BASE_MASK)>>MEMORY_BASE_SHIFT) + ")";
+            currentInstruction.instructionString += " " + GetRegister((currentInstruction.binary & MEMORY_RT_MASK)>>MEMORY_RT_SHIFT) + ", "
+                                    + GetMemoryOffset(currentInstruction.binary & MEMORY_OFFSET_MASK) + "("
+                                    + GetRegister((currentInstruction.binary & MEMORY_BASE_MASK)>>MEMORY_BASE_SHIFT) + ")";
             break;
         case IMMEDIATE:
-            instructionString += " " + GetRegister((instructionBinary & IMMEDIATE_RT_MASK)>>IMMEDIATE_RT_SHIFT) + ", "
-                                    + GetRegister((instructionBinary & IMMEDIATE_RS_MASK)>>IMMEDIATE_RS_SHIFT) + ", ";
+            currentInstruction.instructionString += " " + GetRegister((currentInstruction.binary & IMMEDIATE_RT_MASK)>>IMMEDIATE_RT_SHIFT) + ", "
+                                    + GetRegister((currentInstruction.binary & IMMEDIATE_RS_MASK)>>IMMEDIATE_RS_SHIFT) + ", ";
             if(!name.compare("ADDIU"))
-                instructionString += GetImmediateValue((instructionBinary & IMMEDIATE_VALUE_MASK),true);
+                currentInstruction.instructionString += GetImmediateValue((currentInstruction.binary & IMMEDIATE_VALUE_MASK),true);
             else
-                instructionString += GetImmediateValue(instructionBinary & IMMEDIATE_VALUE_MASK);
+                currentInstruction.instructionString += GetImmediateValue(currentInstruction.binary & IMMEDIATE_VALUE_MASK);
             break;
         case BRANCH:
-            isBranch = true;
-            instructionString += " " + GetRegister((instructionBinary & BRANCH_RS_MASK)>>BRANCH_RS_SHIFT) + ", ";
+            currentInstruction.instructionString += " " + GetRegister((currentInstruction.binary & BRANCH_RS_MASK)>>BRANCH_RS_SHIFT) + ", ";
             if( !name.compare("BEQ") || !name.compare("BNE") )
-                instructionString += GetRegister((instructionBinary & BRANCH_RT_MASK)>>BRANCH_RT_SHIFT) + ", ";
-            instructionString += "#" + GetBranchOffset(instructionBinary & BRANCH_OFFSET_MASK);
+                currentInstruction.instructionString += GetRegister((currentInstruction.binary & BRANCH_RT_MASK)>>BRANCH_RT_SHIFT) + ", ";
+            currentInstruction.instructionString += "#" + GetBranchOffset(currentInstruction.binary & BRANCH_OFFSET_MASK);
             break;
         case JUMP:
-            instructionString += " " + GetJumpAddress( (instructionBinary & JUMP_TARGET_MASK), programCounter);
+            currentInstruction.instructionString += " " + GetJumpAddress( (currentInstruction.binary & JUMP_TARGET_MASK), programCounter);
             break;
         case REGIMM:
-            instructionString += " " + GetRegister((instructionBinary & REGIMM_RS_MASK)>>REGIMM_RS_SHIFT) + ", #"
-                                    + GetBranchOffset(instructionBinary & REGIMM_OFFSET_MASK);
+            currentInstruction.instructionString += " " + GetRegister((currentInstruction.binary & REGIMM_RS_MASK)>>REGIMM_RS_SHIFT) + ", #"
+                                    + GetBranchOffset(currentInstruction.binary & REGIMM_OFFSET_MASK);
             break;
         case SPECIAL:
             if( !name.compare("BREAK") || !name.compare("NOP") )
                 break;
-            instructionString += " " + GetRegister((instructionBinary & SPECIAL_RD_MASK)>>SPECIAL_RD_SHIFT) + ", ";
+            currentInstruction.instructionString += " " + GetRegister((currentInstruction.binary & SPECIAL_RD_MASK)>>SPECIAL_RD_SHIFT) + ", ";
             if( name.compare("SLL") && name.compare("SRL") && name.compare("SRA") )
-                instructionString += GetRegister((instructionBinary & SPECIAL_RS_MASK)>>SPECIAL_RS_SHIFT) + ", ";
-            instructionString += GetRegister((instructionBinary & SPECIAL_RT_MASK)>>SPECIAL_RT_SHIFT);
+                currentInstruction.instructionString += GetRegister((currentInstruction.binary & SPECIAL_RS_MASK)>>SPECIAL_RS_SHIFT) + ", ";
+            currentInstruction.instructionString += GetRegister((currentInstruction.binary & SPECIAL_RT_MASK)>>SPECIAL_RT_SHIFT);
             if( !name.compare("SLL") || !name.compare("SRL") || !name.compare("SRA") )
-                instructionString += ", #" + GetShiftAmount((instructionBinary & SPECIAL_SA_MASK)>>SPECIAL_SA_SHIFT);
+                currentInstruction.instructionString += ", #" + GetShiftAmount((currentInstruction.binary & SPECIAL_SA_MASK)>>SPECIAL_SA_SHIFT);
             break;
         default:
-            instructionString = "";
+            currentInstruction.instructionString = "";
             break;
     }
 }
@@ -504,7 +542,6 @@ string InstructionFetch::GetBranchOffset(uint16_t binary)
     }
     binary*=4;
     oStr << binary;
-    branchDestination = programCounter + 4 + binary;
     return oStr.str();
 }
 

@@ -8,6 +8,8 @@
 #ifndef INSTR_QUEUE_H
 #define INSTR_QUEUE_H
 
+#include "MIPSdefs.h"
+
 #include <string>
 #include <queue>
 
@@ -16,27 +18,61 @@ using namespace std;
 class InstructionQueue
 {
 public:
-    void Write(string fetchedInstr)
+    /**************************************************************
+     * 		InstructionQueue::NotEmpty
+     **************************************************************/
+    bool NotEmpty()
+    {
+        return (instrQueue.size() == 0);
+    }
+
+    /**************************************************************
+     * 		InstructionQueue::Flush
+     **************************************************************/
+    void Flush()
+    {
+        for(int i=0; i<instrQueue.size(); i++)
+            instrQueue.pop();
+    }
+
+    /**************************************************************
+     * 		InstructionQueue::Write
+     **************************************************************/
+    void Write(Instruction fetchedInstr)
     {
         instrQueue.push(fetchedInstr);
     }
 
-    string Read()
+    /**************************************************************
+     * 		InstructionQueue::Read
+     **************************************************************/
+    Instruction Read()
     {
-        string nextInstruction = instrQueue.front();
-        instrQueue.pop();
+        Instruction nextInstruction = instrQueue.front();
         return nextInstruction;
     }
 
+    /**************************************************************
+     * 		InstructionQueue::Pop
+     **************************************************************/
+    void Pop()
+    {
+        instrQueue.pop();
+    }
+
+    /**************************************************************
+     * 		InstructionQueue::GetContents
+     **************************************************************/
     string GetContents()
     {
         string contents = "IQ:\r\n";
-        string temp;
+        Instruction temp;
+        string curInstr;
         for(int i=0; i<instrQueue.size(); i++)
         {
             temp = instrQueue.front();
             instrQueue.pop();
-            contents += "[" + temp + "]";
+            contents += "[" + temp.instructionString + "]";
             if(i!=instrQueue.size())
                 contents += "\r\n";
             instrQueue.push(temp);
@@ -45,7 +81,7 @@ public:
     }
 
 private:
-    queue<string> instrQueue;
+    queue<Instruction> instrQueue;
 };
 
 #endif /* INSTR_QUEUE_H */
