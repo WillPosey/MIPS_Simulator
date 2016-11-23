@@ -57,7 +57,7 @@ struct ROB_Entry
 class ReorderBuffer
 {
 public:
-    ReorderBuffer(){numEntries = robNextEntry = 0;}
+    ReorderBuffer(){numEntries = 0; robNextEntry = 1;}
 
     /* Operator overload for setting ROB entry (ReorderBuffer[entryNum] = entry;) */
     ROB_Entry& operator[] (unsigned int entryNum)
@@ -83,6 +83,7 @@ public:
     int CreateEntry(ROB_Entry newEntry);
     int GetEntryByDestination(int regNum);
     string GetContent();
+
 private:
     void ClearEntry(int entryNum);
 

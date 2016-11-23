@@ -27,6 +27,7 @@ public:
     void RunCycle();
     void CompleteCycle();
     void ReadCDB(){};
+
 private:
     void GetOperands();
     void GetDestination();

@@ -19,8 +19,21 @@ void ReservationStation::CreateEntry(RS_Entry newEntry)
     if(numEntries < 10)
     {
         numEntries++;
+        robEntryToIndex[newEntry.robDest] = rs.size();
         rs.push_back(newEntry);
     }
+}
+
+/**************************************************************
+ *
+ * 		ReservationStation::MakeEntryAvailable
+ *
+ **************************************************************/
+void ReservationStation::MakeEntryAvailable(int robEntryNum)
+{
+    numEntries--;
+    rs.erase(robEntryToIndex.at(robEntryNum));
+    robEntryToIndex.erase(robEntryNum);
 }
 
 /**************************************************************

@@ -12,6 +12,7 @@
 
 #include "MIPSdefs.h"
 
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ struct RS_Entry
     int Qk;
     int robDest;
     int address;
+    int result;
 };
 
 class ReservationStation
@@ -54,11 +56,14 @@ public:
     }
 
     bool Available(){return (numEntries < 10);}
+    int GetNumEntries(){return numEntries;}
     void CreateEntry(RS_Entry newEntry);
+    void MakeEntryAvailable(int robEntryNum);
     string GetContent();
 
 private:
     vector<RS_Entry> rs;
+    unordered_map<int,int> robEntryToIndex;
     int numEntries;
 };
 

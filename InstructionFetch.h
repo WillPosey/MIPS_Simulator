@@ -28,6 +28,7 @@ public:
     void CompleteCycle();
     void ReadCDB();
     void UpdateProgramCounter(int PC);
+
 private:
     void CheckBTB();
     void IncrementProgramCounter();

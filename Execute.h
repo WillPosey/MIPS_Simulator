@@ -18,6 +18,28 @@
 
 using namespace std;
 
+struct ExListenCDB
+{
+    int destination;
+    int rsNum;
+};
+
+enum
+{
+    branchOutcome,
+    addressCalc,
+    alu,
+    ldMem,
+    sdMem
+} ExResultType;
+
+struct ExResult
+{
+    int rsIndex;
+    ExResultType type;
+    int value;
+};
+
 class Execute : public virtual PipelineStage
 {
 public:
@@ -27,6 +49,10 @@ public:
     void ReadCDB();
 
 private:
+    void
+
+    vector<CDB_Entry> cdbWrite;
+    vector<ExListenCDB> cdbListen;
     ReservationStation& RS;
     ReorderBuffer& ROB;
     CommonDataBus& CDB;

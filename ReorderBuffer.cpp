@@ -19,14 +19,14 @@ int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
     if(numEntries < 6)
     {
         int createdEntryIndex = robNextEntry;
-        robIndexes[createdEntryIndex] = rob.size();
-        robEntryNums[rob.size()] = createdEntryIndex;
+        robIndexes[createdEntryIndex-1] = rob.size();
+        robEntryNums[rob.size()] = createdEntryIndex-1;
         rob.push_back(newEntry);
 
         numEntries++;
         robNextEntry++;
-        if(robNextEntry == 6)
-            robNextEntry = 0;
+        if(robNextEntry == 7)
+            robNextEntry = 1;
 
         return createdEntryIndex;
     }

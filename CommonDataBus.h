@@ -15,9 +15,17 @@
 
 using namespace std;
 
+enum
+{
+    rob,
+    address,
+    mispredict
+} CDB_Type;
+
 struct CDB_Entry
 {
-    string destination;
+    CDB_Type type;
+    int destination;
     int value;
 };
 
