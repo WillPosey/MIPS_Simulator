@@ -123,6 +123,11 @@ struct InstructionInfo
     InstructionType type;
     string name;
     string opcode;
+    int rt;
+    int rs;
+    int rd;
+    int offset;
+    int immVal;
 };
 
 struct Instruction

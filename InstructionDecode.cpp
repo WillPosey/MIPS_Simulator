@@ -66,6 +66,9 @@ void InstructionDecode::RunCycle()
                 robEntry.instruction = currentInstruction;
                 robEntry.state = Ex;
                 rsEntry.instruction = currentInstruction;
+                rsEntry.busy = true;
+                GetOperands();
+                GetDestination();
                 /* determine operands, destination, etc */
             }
             else
@@ -97,6 +100,167 @@ void InstructionDecode::CompleteCycle()
         rsEntry.robDest = ROB.CreateEntry(robEntry);
         RS.CreateEntry(rsEntry);
     }
+}
 
+/**************************************************************
+ *
+ * 		InstructionDecode::GetOperands
+ *
+ **************************************************************/
+void InstructionDecode::GetOperands()
+{
+    int rs = currentInstruction.info.rs;
+    int rt = currentInstruction.info.rt;
+    int rd = currentInstruction.info.rd;
+    int immVal = currentInstruction.info.immVal;
+    string name = currentInstruction.info.name;
+
+    switch(currentInstruction.info.type)
+    {
+        case MEMORY:
+            /* Vj, Qj*/
+            if(!RF[rs].busy)
+            {
+                rsEntry.Qj = 0;
+                rsEntry.Vj = RF[rs].value;
+            }
+            else
+                rsEntry.Qj = ROB.GetEntryByDestination(rs);
+            /* Vk, Qk*/
+            if(!RF[rt].busy)
+            {
+                rsEntry.Qk = 0;
+                rsEntry.Vk = RF[rt].value;
+            }
+            else
+                rsEntry.Qk = ROB.GetEntryByDestination(rt);
+            break;
+        case IMMEDIATE:
+            /* Vk, Qk*/
+            rsEntry.Qk = 0;
+            rsEntry.Vk = immVal;
+            /* Vj, Qj*/
+            if(!RF[rs].busy)
+            {
+                rsEntry.Qj = 0;
+                rsEntry.Vj = RF[rs].value;
+            }
+            else
+                rsEntry.Qk = ROB.GetEntryByDestination(rs);
+            break;
+        case BRANCH:
+            /* Vj, Qj*/
+            if(!RF[rs].busy)
+            {
+                rsEntry.Qj = 0;
+                rsEntry.Vj = RF[rs].value;
+            }
+            else
+                rsEntry.Qj = ROB.GetEntryByDestination(rs);
+            /* Vk, Qk*/
+            if( !name.compare("BEQ") || !name.compare("BNE") )
+            {
+                if(!RF[rt].busy)
+                {
+                    rsEntry.Qk = 0;
+                    rsEntry.Vk = RF[rt].value;
+                }
+                else
+                    rsEntry.Qk = ROB.GetEntryByDestination(rt);
+            }
+            else
+            {
+                rsEntry.Qk = 0;
+                rsEntry.Vk = 0;
+            }
+            break;
+        case JUMP:
+            /* Vj, Qj*/
+            rsEntry.Qj = 0;
+            rsEntry.Vj = (currentInstruction.binary & JUMP_TARGET_MASK);
+            /* Vk, Qk*/
+            rsEntry.Qk = 0;
+            rsEntry.Vk = currentInstruction.PC;
+            break;
+        case REGIMM:
+            /* Vj, Qj*/
+            if(!RF[rs].busy)
+            {
+                rsEntry.Qj = 0;
+                rsEntry.Vj = RF[rs].value;
+            }
+            else
+                rsEntry.Qj = ROB.GetEntryByDestination(rs);
+            /* Vk, Qk*/
+            rsEntry.Qk = 0;
+            rsEntry.Vk = 0;
+            break;
+        case SPECIAL:
+            if( !name.compare("SLL") || !name.compare("SRL") || !name.compare("SRA") )
+            {
+                /* Vj, Qj*/
+                if(!RF[rt].busy)
+                {
+                    rsEntry.Qj = 0;
+                    rsEntry.Vj = RF[rt].value;
+                }
+                else
+                    rsEntry.Qj = ROB.GetEntryByDestination(rt);
+                /* Vk, Qk*/
+                rsEntry.Qj = 0;
+                rsEntry.Vj = (currentInstruction.binary & SPECIAL_SA_MASK)>>SPECIAL_SA_SHIFT;
+            }
+            else
+            {
+                /* Vj, Qj*/
+                if(!RF[rs].busy)
+                {
+                    rsEntry.Qj = 0;
+                    rsEntry.Vj = RF[rs].value;
+                }
+                else
+                    rsEntry.Qj = ROB.GetEntryByDestination(rs);
+                /* Vk, Qk*/
+                if(!RF[rt].busy)
+                {
+                    rsEntry.Qk = 0;
+                    rsEntry.Vk = RF[rt].value;
+                }
+                else
+                    rsEntry.Qk = ROB.GetEntryByDestination(rt);
+            }
+            break;
+    }
+}
+
+/**************************************************************
+ *
+ * 		InstructionDecode::GetDestination
+ *
+ **************************************************************/
+void InstructionDecode::GetDestination()
+{
+    int rt = currentInstruction.info.rt;
+    int rd = currentInstruction.info.rd;
+
+    switch(currentInstruction.info.type)
+    {
+        case MEMORY:
+            robEntry.destination = Mem;
+            break;
+        case IMMEDIATE:
+            robEntry.destination = Reg;
+            robEntry.destinationAddress = rt;
+            break;
+        case BRANCH:
+        case JUMP:
+        case REGIMM:
+            robEntry.destination = Br;
+            break;
+        case SPECIAL:
+            robEntry.destination = Reg;
+            robEntry.destinationAddress = rd;
+            break;
+    }
 }
 

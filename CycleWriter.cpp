@@ -13,6 +13,18 @@ using namespace std;
 
 /**************************************************************
  *
+ * 		CycleWriter Constructor
+ *
+ **************************************************************/
+CycleWriter::CycleWriter(string filename)
+{
+    outStream.open(filename);
+    traceAll = false;
+    traceStart = traceEnd = 0;
+}
+
+/**************************************************************
+ *
  * 		CycleWriter::SetTraceParameter
  *
  **************************************************************/

@@ -29,12 +29,14 @@ typedef enum
 
 typedef enum
 {
-    Register,
-    Memory
+    Reg,
+    Mem,
+    Br
 } DestinationType;
 
 struct ROB_Entry
 {
+    int entryNum;
     bool busy;
     Instruction instruction;
     ROB_State state;
@@ -45,7 +47,7 @@ struct ROB_Entry
 
     ROB_Entry():    busy(false),
                     state(Ex),
-                    destination(Register),
+                    destination(Reg),
                     destinationAddress(0),
                     addressPresent(false),
                     value(0)
@@ -63,7 +65,7 @@ public:
         if(entryNum > 5)
             return rob[5];
 
-        return rob[entryNum];
+        return rob[robIndexes[entryNum]];
     }
 
     /* Operator overload for getting ROB entry (entry = ReorderBuffer[entryNum];) */
@@ -72,19 +74,22 @@ public:
         if(entryNum > 5)
             return rob[5];
 
-        return rob[entryNum];
+        int index = robIndexes.at(entryNum);
+
+        return rob[index];
     }
 
     bool Available(){return (numEntries < 6);}
     int CreateEntry(ROB_Entry newEntry);
+    int GetEntryByDestination(int regNum);
     string GetContent();
 private:
     void ClearEntry(int entryNum);
 
     vector<ROB_Entry> rob;
     unordered_map<int,int> robIndexes;  /* maps rob entry num to index in vector (rob head always at vector index 0) */
+    unordered_map<int,int> robEntryNums;  /* maps index in vector to rob entry num */
     int numEntries;
-    int robHead;
     int robNextEntry;
 };
 

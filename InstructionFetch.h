@@ -47,6 +47,7 @@ private:
 	string GetJumpInstructionName();
 	string GetRegimmInstructionName(string funct);
 	string GetSpecialInstructionName(string funct);
+
 	string GetRegister(uint8_t regVal);
 	string GetJumpAddress(uint32_t address, uint32_t pcAddress);
 	string GetShiftAmount(uint8_t binary);
@@ -60,6 +61,7 @@ private:
     CommonDataBus& CDB;
     int programCounter;
     bool breakFound;
+    bool lastInstruction;
 
     Instruction currentInstruction;
 };

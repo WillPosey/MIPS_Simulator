@@ -28,6 +28,8 @@ public:
     void CompleteCycle();
     void ReadCDB(){};
 private:
+    void GetOperands();
+    void GetDestination();
 
     Instruction currentInstruction;
     ROB_Entry robEntry;

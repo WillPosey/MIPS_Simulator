@@ -23,7 +23,7 @@ using namespace std;
 class CycleWriter
 {
 public:
-    CycleWriter(string filename){outStream.open(filename);};
+    CycleWriter(string filename);
     void SetTraceParameter(string traceParam);
     void WriteCycle(InstructionQueue IQ, ReservationStation RS, ReorderBuffer ROB, BranchTargetBuffer BTB, RegisterFile RF, MainMemory memory, bool finalCycle);
 private:

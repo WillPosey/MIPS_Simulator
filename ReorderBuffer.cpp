@@ -20,6 +20,7 @@ int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
     {
         int createdEntryIndex = robNextEntry;
         robIndexes[createdEntryIndex] = rob.size();
+        robEntryNums[rob.size()] = createdEntryIndex;
         rob.push_back(newEntry);
 
         numEntries++;
@@ -30,6 +31,26 @@ int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
         return createdEntryIndex;
     }
     return -1;
+}
+
+/**************************************************************
+ *
+ * 		ReorderBuffer::CreateEntry
+ *
+ **************************************************************/
+int ReorderBuffer::GetEntryByDestination(int regNum)
+{
+    int robNum = -1;
+    vector<ROB_Entry>::iterator robIter;
+    for(robIter=rob.begin(); robIter != rob.end(); robIter++)
+    {
+        if(robIter->destination == Reg && robIter->destinationAddress == regNum)
+        {
+            robNum = robEntryNums[robIter-rob.begin()];
+            break;
+        }
+    }
+    return robNum;
 }
 
 /**************************************************************

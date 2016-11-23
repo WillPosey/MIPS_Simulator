@@ -109,11 +109,7 @@ string BranchTargetBuffer::GetContent()
 {
     string content = "BTB:\r\n";
     for(int i=1; i<=numEntries; i++)
-    {
-        content += GetEntryString(reverseIndexHashTable[i]);
-        if(i!=numEntries)
-            content += "\r\n";
-    }
+        content += GetEntryString(reverseIndexHashTable[i]) + "\r\n";
     return content;
 }
 
@@ -139,10 +135,11 @@ bool BranchTargetBuffer::EntryExists(int srcAddress)
  **************************************************************/
 string BranchTargetBuffer::GetEntryString(BTB_Entry* entry)
 {
-    stringstream entryStringStr;
-    entryStringStr << "[Entry " << indexHashTable[entry] << "]:<";
-    entryStringStr << entry->srcAddress << "," << entry->destAddress << "," << entry->prediction << ">";
-    return entryStringStr.str();
+    string entryString = "[Entry "  + to_string(indexHashTable[entry]) + "]:<"
+                                    + to_string(entry->srcAddress) + ","
+                                    + to_string(entry->destAddress) + ","
+                                    + to_string(entry->prediction) + ">";
+    return entryString;
 }
 
 /**************************************************************

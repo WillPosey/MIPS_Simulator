@@ -62,8 +62,7 @@ public:
 
             for(int j=0; j<8; j++)
             {
-                regNum++;
-                content += to_string(registerFileContent[regNum].value);
+                content += to_string(registerFileContent[regNum++].value);
                 if(j!=8)
                     content += "\t";
             }
