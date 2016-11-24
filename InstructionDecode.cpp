@@ -99,6 +99,11 @@ void InstructionDecode::CompleteCycle()
     {
         rsEntry.robDest = ROB.CreateEntry(robEntry);
         RS.CreateEntry(rsEntry);
+        if(robEntry.destination == Reg)
+        {
+            RF[robEntry.destinationAddress].busy = true;
+            RF[robEntry.destinationAddress].robNumber = rsEntry.robDest;
+        }
     }
 }
 
@@ -114,18 +119,71 @@ void InstructionDecode::GetOperands()
     int rd = currentInstruction.info.rd;
     int immVal = currentInstruction.info.immVal;
     string name = currentInstruction.info.name;
+    int robNum;
 
     switch(currentInstruction.info.type)
     {
         case MEMORY:
-            /* Vj, Qj*/
+            /* VJ, QJ*/
             if(!RF[rs].busy)
             {
                 rsEntry.Qj = 0;
                 rsEntry.Vj = RF[rs].value;
             }
             else
-                rsEntry.Qj = ROB.GetEntryByDestination(rs);
+            {
+                robNum = RF[rs].robNumber;
+                if(ROB[robNum].state == Cmt)
+                {
+                    rsEntry.Qj = 0;
+                    rsEntry.Vj = ROB[robNum].value;
+                }
+                else
+                    rsEntry.Qj = robNum;
+            }
+            rsEntry.address = currentInstruction.info.offset;
+            rsEntry.Qk = 0;
+            break;
+        case IMMEDIATE:
+            /* VJ, QJ*/
+            if(!RF[rs].busy)
+            {
+                rsEntry.Qj = 0;
+                rsEntry.Vj = RF[rs].value;
+            }
+            else
+            {
+                robNum = RF[rs].robNumber;
+                if(ROB[robNum].state == Cmt)
+                {
+                    rsEntry.Qj = 0;
+                    rsEntry.Vj = ROB[robNum].value;
+                }
+                else
+                    rsEntry.Qj = robNum;
+            }
+            rsEntry.Qk = 0;
+            rsEntry.Vk = currentInstruction.info.immVal;
+            break;
+        case SPECIAL:
+        case BRANCH:
+            /* VJ, QJ*/
+            if(!RF[rs].busy)
+            {
+                rsEntry.Qj = 0;
+                rsEntry.Vj = RF[rs].value;
+            }
+            else
+            {
+                robNum = RF[rs].robNumber;
+                if(ROB[robNum].state == Cmt)
+                {
+                    rsEntry.Qj = 0;
+                    rsEntry.Vj = ROB[robNum].value;
+                }
+                else
+                    rsEntry.Qj = robNum;
+            }
             /* Vk, Qk*/
             if(!RF[rt].busy)
             {
@@ -133,102 +191,40 @@ void InstructionDecode::GetOperands()
                 rsEntry.Vk = RF[rt].value;
             }
             else
-                rsEntry.Qk = ROB.GetEntryByDestination(rt);
-            break;
-        case IMMEDIATE:
-            /* Vk, Qk*/
-            rsEntry.Qk = 0;
-            rsEntry.Vk = immVal;
-            /* Vj, Qj*/
-            if(!RF[rs].busy)
             {
-                rsEntry.Qj = 0;
-                rsEntry.Vj = RF[rs].value;
-            }
-            else
-                rsEntry.Qk = ROB.GetEntryByDestination(rs);
-            break;
-        case BRANCH:
-            /* Vj, Qj*/
-            if(!RF[rs].busy)
-            {
-                rsEntry.Qj = 0;
-                rsEntry.Vj = RF[rs].value;
-            }
-            else
-                rsEntry.Qj = ROB.GetEntryByDestination(rs);
-            /* Vk, Qk*/
-            if( !name.compare("BEQ") || !name.compare("BNE") )
-            {
-                if(!RF[rt].busy)
+                robNum = RF[rt].robNumber;
+                if(ROB[robNum].state == Cmt)
                 {
                     rsEntry.Qk = 0;
-                    rsEntry.Vk = RF[rt].value;
+                    rsEntry.Vk = ROB[robNum].value;
                 }
                 else
-                    rsEntry.Qk = ROB.GetEntryByDestination(rt);
-            }
-            else
-            {
-                rsEntry.Qk = 0;
-                rsEntry.Vk = 0;
+                    rsEntry.Qk = robNum;
             }
             break;
         case JUMP:
-            /* Vj, Qj*/
             rsEntry.Qj = 0;
-            rsEntry.Vj = (currentInstruction.binary & JUMP_TARGET_MASK);
-            /* Vk, Qk*/
             rsEntry.Qk = 0;
-            rsEntry.Vk = currentInstruction.PC;
             break;
         case REGIMM:
-            /* Vj, Qj*/
+            /* VJ, QJ*/
             if(!RF[rs].busy)
             {
                 rsEntry.Qj = 0;
                 rsEntry.Vj = RF[rs].value;
             }
             else
-                rsEntry.Qj = ROB.GetEntryByDestination(rs);
-            /* Vk, Qk*/
+            {
+                robNum = RF[rs].robNumber;
+                if(ROB[robNum].state == Cmt)
+                {
+                    rsEntry.Qj = 0;
+                    rsEntry.Vj = ROB[robNum].value;
+                }
+                else
+                    rsEntry.Qj = robNum;
+            }
             rsEntry.Qk = 0;
-            rsEntry.Vk = 0;
-            break;
-        case SPECIAL:
-            if( !name.compare("SLL") || !name.compare("SRL") || !name.compare("SRA") )
-            {
-                /* Vj, Qj*/
-                if(!RF[rt].busy)
-                {
-                    rsEntry.Qj = 0;
-                    rsEntry.Vj = RF[rt].value;
-                }
-                else
-                    rsEntry.Qj = ROB.GetEntryByDestination(rt);
-                /* Vk, Qk*/
-                rsEntry.Qj = 0;
-                rsEntry.Vj = (currentInstruction.binary & SPECIAL_SA_MASK)>>SPECIAL_SA_SHIFT;
-            }
-            else
-            {
-                /* Vj, Qj*/
-                if(!RF[rs].busy)
-                {
-                    rsEntry.Qj = 0;
-                    rsEntry.Vj = RF[rs].value;
-                }
-                else
-                    rsEntry.Qj = ROB.GetEntryByDestination(rs);
-                /* Vk, Qk*/
-                if(!RF[rt].busy)
-                {
-                    rsEntry.Qk = 0;
-                    rsEntry.Vk = RF[rt].value;
-                }
-                else
-                    rsEntry.Qk = ROB.GetEntryByDestination(rt);
-            }
             break;
     }
 }
@@ -242,11 +238,18 @@ void InstructionDecode::GetDestination()
 {
     int rt = currentInstruction.info.rt;
     int rd = currentInstruction.info.rd;
+    string name = currentInstruction.info.name;
 
     switch(currentInstruction.info.type)
     {
         case MEMORY:
-            robEntry.destination = Mem;
+            if(!name.compare("SD"))
+                robEntry.destination = Mem;
+            else
+            {
+                robEntry.destination = Reg;
+                robEntry.destinationAddress = rt;
+            }
             break;
         case IMMEDIATE:
             robEntry.destination = Reg;

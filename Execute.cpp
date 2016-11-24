@@ -32,6 +32,7 @@ void Execute::RunCycle()
     int numRsEntries = RS.GetNumEntries();
     cdbListen.clear();
     cdbWrite.clear();
+    completeEx.clear();
 
     for(int i=0; i<numRsEntries; i++)
         if(CheckOperandsReady(i))
@@ -50,7 +51,7 @@ bool Execute::CheckOperandsReady(int rsIndex)
 
     VjAvail = VkAvail = false;
 
-    if(RS[i].Qj)
+    if(!RS[i].Qj)
         VjAvail = true;
     else
     {
@@ -59,7 +60,7 @@ bool Execute::CheckOperandsReady(int rsIndex)
         cdbListen.push_back(listenForOperand);
     }
 
-    if(RS[i].Qk)
+    if(!RS[i].Qk)
         VkAvail = true;
     else
     {
@@ -78,6 +79,7 @@ bool Execute::CheckOperandsReady(int rsIndex)
  **************************************************************/
 void Execute::ExecuteInstruction(int rsIndex)
 {
+    ExResult executeResult;
     InstructionType type = RS[rsIndex].instruction.info.type;
     string name = RS[rsIndex].instruction.info.name;
     int cycleNum = RS[rsIndex].cycleNum;
@@ -91,7 +93,10 @@ void Execute::ExecuteInstruction(int rsIndex)
                 /* all addresses before this have been calculated */
                 if(ROB.CheckAddressCalc(robNum))
                 {
-
+                    executeResult.type = addressCalc;
+                    executeResult.rsIndex = rsIndex;
+                    executeResult.value = RS[rsIndex].address + RS[rsIndex].Vj;
+                    completeEx.push_back(executeResult);
                 }
             }
 

@@ -40,7 +40,8 @@ void InstructionFetch::RunCycle()
         return;
 
     GetNextInstruction();
-    if(currentInstruction.info.type == BRANCH || currentInstruction.info.type == JUMP)
+    InstructionType type = currentInstruction.info.type;
+    if(type == BRANCH || type == JUMP || type == REGIMM)
         CheckBTB();
     else
         IncrementProgramCounter();
