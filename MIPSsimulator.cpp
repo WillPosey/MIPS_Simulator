@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 
     InstructionFetch IF (memory, IQ, BTB, CDB);
     InstructionDecode ID (IQ, RS, ROB, RF, CDB);
-    Execute EX (RS, ROB, CDB);
+    Execute EX (memory, BTB, RS, ROB, CDB);
     WriteResult WR (RS, ROB, CDB);
     Commit CM (memory, RS, ROB, RF, CDB, programFinished);
 

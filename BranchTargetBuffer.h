@@ -43,7 +43,7 @@ public:
     bool GetPrediction(int srcAddress);
     int GetDestinationAddress(int srcAddress);
     void CreateEntry(int srcAddress, int destAddress, bool prediction);
-    void UpdatePrediction(int srcAddress, bool prediction);
+    void UpdatePrediction(int srcAddress, int destAddress, bool prediction);
     string GetContent();
 private:
     bool EntryExists(int srcAddress);

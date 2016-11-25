@@ -82,6 +82,8 @@ public:
     bool Available(){return (numEntries < 6);}
     int CreateEntry(ROB_Entry newEntry);
     int GetEntryByDestination(int regNum);
+    bool CheckAddressCalc(int address);
+    bool CheckLoadProceed(int address);
     string GetContent();
 
 private:

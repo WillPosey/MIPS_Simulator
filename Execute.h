@@ -10,6 +10,8 @@
 
 #include "PipelineStage.h"
 #include "MIPSdefs.h"
+#include "MainMemory.h"
+#include "BranchTargetBuffer.h"
 #include "ReservationStation.h"
 #include "ReorderBuffer.h"
 #include "CommonDataBus.h"
@@ -38,12 +40,13 @@ struct ExResult
     int rsIndex;
     ExResultType type;
     int value;
+    int address;
 };
 
 class Execute : public virtual PipelineStage
 {
 public:
-    Execute(ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);
+    Execute(MainMemory& memRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);
     void RunCycle();
     void CompleteCycle();
     void ReadCDB();
@@ -52,9 +55,10 @@ private:
     bool CheckOperandsReady(int rsIndex);
     void ExecuteInstruction(int rsIndex);
 
-    vector<CDB_Entry> cdbWrite;
     vector<ExListenCDB> cdbListen;
     vector<ExResult> completeEx;
+    MainMemory& memory;
+    BranchTargetBuffer& BTB;
     ReservationStation& RS;
     ReorderBuffer& ROB;
     CommonDataBus& CDB;

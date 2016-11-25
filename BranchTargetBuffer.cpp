@@ -94,10 +94,12 @@ void BranchTargetBuffer::CreateEntry(int srcAddress, int destAddress, bool predi
  * 		BranchTargetBuffer::UpdatePrediction
  *
  **************************************************************/
-void BranchTargetBuffer::UpdatePrediction(int srcAddress, bool prediction)
+void BranchTargetBuffer::UpdatePrediction(int srcAddress, int destAddress, bool prediction)
 {
     if(EntryExists(srcAddress))
         hashTable[srcAddress]->prediction = prediction;
+    else
+        CreateEntry(srcAddress, destAddress, prediction);
 }
 
 /**************************************************************

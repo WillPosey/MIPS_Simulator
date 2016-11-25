@@ -263,6 +263,8 @@ void InstructionFetch::BinaryStringToInstruction()
                 currentInstruction.info.rs = (currentInstruction.binary & SPECIAL_RS_MASK)>>SPECIAL_RS_SHIFT;
                 currentInstruction.instructionString += GetRegister(currentInstruction.info.rs) + ", ";
             }
+            else
+                currentInstruction.info.rs = (currentInstruction.binary & SPECIAL_RS_MASK)>>SPECIAL_RS_SHIFT;
             currentInstruction.info.rt = (currentInstruction.binary & SPECIAL_RT_MASK)>>SPECIAL_RT_SHIFT;
             currentInstruction.instructionString += GetRegister(currentInstruction.info.rt);
             if( !name.compare("SLL") || !name.compare("SRL") || !name.compare("SRA") )
