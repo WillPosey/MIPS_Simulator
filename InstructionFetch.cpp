@@ -77,10 +77,11 @@ void InstructionFetch::ReadCDB()
     for(it=CDBEntries.begin(); it!=CDBEntries.end(); it++)
     {
         currentEntry = *it;
-        if(currentEntry.destination.compare("IQ") == 0)
+        if(currentEntry.type == mispredict)
+        {
             IQ.Flush();
-        else if(currentEntry.destination.compare("PC") == 0)
             UpdateProgramCounter(currentEntry.value);
+        }
     }
 }
 

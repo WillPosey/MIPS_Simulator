@@ -55,6 +55,51 @@ int ReorderBuffer::GetEntryByDestination(int regNum)
 
 /**************************************************************
  *
+ * 		ReorderBuffer::CheckAddressCalc
+ *
+ **************************************************************/
+bool ReorderBuffer::CheckAddressCalc(int robNum)
+{
+    bool allBeforeCalculated = true;
+
+    for(int i=robIndexes.at(robNum)+1; i<rob.size(); i++)
+    {
+        if(rob[i].instruction.info.type == MEMORY)
+        {
+            if(!rob[i].addressPresent)
+            {
+                allBeforeCalculated = false;
+                break;
+            }
+        }
+    }
+
+    return allBeforeCalculated;
+}
+
+/**************************************************************
+ *
+ * 		ReorderBuffer::CheckLoadProceed
+ *
+ **************************************************************/
+bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
+{
+    bool storeComplete = true;
+
+    for(int i=robIndexes.at(robNum)-1; i>=0; i--)
+    {
+        if(!rob[i].instruction.info.name.compare("SD"))
+        {
+            if(rob[i].destinationAddress == address)
+                storeComplete = false;
+        }
+    }
+
+    return storeComplete;
+}
+
+/**************************************************************
+ *
  * 		ReorderBuffer::GetContent
  *
  **************************************************************/

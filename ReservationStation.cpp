@@ -32,7 +32,7 @@ void ReservationStation::CreateEntry(RS_Entry newEntry)
 void ReservationStation::MakeEntryAvailable(int robEntryNum)
 {
     numEntries--;
-    rs.erase(robEntryToIndex.at(robEntryNum));
+    rs.erase(rs.begin() + robEntryToIndex.at(robEntryNum));
     robEntryToIndex.erase(robEntryNum);
 }
 

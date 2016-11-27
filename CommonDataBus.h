@@ -15,7 +15,7 @@
 
 using namespace std;
 
-enum
+typedef enum
 {
     rob,
     address,

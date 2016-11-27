@@ -14,8 +14,9 @@ using namespace std;
  * 		Execute Constructor
  *
  **************************************************************/
-Execute::Execute(MainMemory& memRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef)
+Execute::Execute(MainMemory& memRef, RegisterFile& rfRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef)
 :   memory(memRef),
+    RF(rfRef),
     BTB(btbRef),
     RS(rsRef),
     ROB(robRef),
@@ -52,21 +53,23 @@ bool Execute::CheckOperandsReady(int rsIndex)
 
     VjAvail = VkAvail = false;
 
-    if(!RS[i].Qj)
+    if(!RS[rsIndex].Qj)
         VjAvail = true;
     else
     {
-        listenForOperand.destination = RS[i].Qj;
-        listenForOperand.rsNum = i;
+        listenForOperand.destination = RS[rsIndex].Qj;
+        listenForOperand.operand = RS_j;
+        listenForOperand.rsNum = rsIndex;
         cdbListen.push_back(listenForOperand);
     }
 
-    if(!RS[i].Qk)
+    if(!RS[rsIndex].Qk)
         VkAvail = true;
     else
     {
-        listenForOperand.destination = RS[i].Qk;
-        listenForOperand.rsNum = i;
+        listenForOperand.destination = RS[rsIndex].Qk;
+        listenForOperand.operand = RS_k;
+        listenForOperand.rsNum = rsIndex;
         cdbListen.push_back(listenForOperand);
     }
 
@@ -87,9 +90,10 @@ void Execute::ExecuteInstruction(int rsIndex)
     int robNum = RS[rsIndex].robDest;
     int rt = RS[rsIndex].instruction.info.rt;
     int binary = RS[rsIndex].instruction.binary;
+    bool negative = ( binary & (1<<15) );
     int PC = RS[rsIndex].instruction.PC;
     int Vj = RS[rsIndex].Vj;
-    int Vj = RS[rsIndex].Vk;
+    int Vk = RS[rsIndex].Vk;
 
     if(cycleNum == 0)
     {
@@ -121,7 +125,6 @@ void Execute::ExecuteInstruction(int rsIndex)
             case BRANCH:
                 executeResult.type = branchOutcome;
                 executeResult.rsIndex = rsIndex;
-                bool negative = ( binary & (1<<15) );
                 if(negative)
                     binary = (~binary) + 1;
                 binary*=4;
@@ -148,7 +151,6 @@ void Execute::ExecuteInstruction(int rsIndex)
             case REGIMM:
                 executeResult.type = branchOutcome;
                 executeResult.rsIndex = rsIndex;
-                bool negative = ( binary & (1<<15) );
                 if(negative)
                     binary = (~binary) + 1;
                 binary*=4;
@@ -205,7 +207,7 @@ void Execute::ExecuteInstruction(int rsIndex)
     {
         if(!name.compare("LD"))
         {
-            if(ROB.CheckLoadProceed(RS[rsIndex].address))
+            if(ROB.CheckLoadProceed(robNum, RS[rsIndex].address))
             {
                 executeResult.type = ldMem;
                 executeResult.rsIndex = rsIndex;
@@ -229,11 +231,14 @@ void Execute::ExecuteInstruction(int rsIndex)
  **************************************************************/
 void Execute::CompleteCycle()
 {
+    ExListenCDB listenForOperand;
+    int robNum;
+
     vector<ExResult>::iterator exResult;
     for(exResult=completeEx.begin(); exResult!=completeEx.end(); exResult++)
     {
         RS[exResult->rsIndex].cycleNum++;
-        switch(exResult->ExResultType)
+        switch(exResult->type)
         {
             case branchOutcome:
                 BTB.UpdatePrediction(RS[exResult->rsIndex].instruction.PC, exResult->address, exResult->value);
@@ -243,24 +248,37 @@ void Execute::CompleteCycle()
                 break;
             case addressCalc:
                 RS[exResult->rsIndex].address = exResult->value;
+                ROB[RS[exResult->rsIndex].robDest].addressPresent = true;
                 /* if a SD addressCalc, if regVal ready or ready in ROB, mark entry in ROB ready to Commit */
-                if(!RS[exResult->rsIndex].info.name.compare("SD"))
+                if(!RS[exResult->rsIndex].instruction.info.name.compare("SD"))
                 {
                     int rt = RS[exResult->rsIndex].instruction.info.rt;
                     if(!RF[rt].busy)
                     {
                         /* Place into ROB ready to commit, value equal to rt */
+                        RS[exResult->rsIndex].result = RF[rt].value;
+                        ROB[RS[exResult->rsIndex].robDest].value = RF[rt].value;
+                        ROB[RS[exResult->rsIndex].robDest].state = Cmt;
                     }
                     else
                     {
                         robNum = RF[rt].robNumber;
                         if(ROB[robNum].state == Cmt)
                         {
-                            /* Place into ROB ready to commit, value equal to rt */
+                            /* Place into ROB ready to commit, value equal to ROB entry */
+                            RS[exResult->rsIndex].result = ROB[robNum].value;
+                            ROB[RS[exResult->rsIndex].robDest].value = ROB[robNum].value;
+                            ROB[RS[exResult->rsIndex].robDest].state = Cmt;
                         }
+                        /* add to listenCDB */
                         else
-                            rsEntry.Qj = robNum;
-                            /* add to listenCDB */
+                        {
+                            RS[exResult->rsIndex].Qj = robNum;
+                            listenForOperand.destination = RS[exResult->rsIndex].Qj;
+                            listenForOperand.operand = RS_j;
+                            listenForOperand.rsNum = exResult->rsIndex;
+                            cdbListen.push_back(listenForOperand);
+                        }
                     }
                 }
                 break;
@@ -271,6 +289,9 @@ void Execute::CompleteCycle()
                 break;
             case sdMem:
                 /* Place into ROB ready to commit, value equal to rt */
+                RS[exResult->rsIndex].result = RS[exResult->rsIndex].Vj;
+                ROB[RS[exResult->rsIndex].robDest].value = RS[exResult->rsIndex].Vj;
+                ROB[RS[exResult->rsIndex].robDest].state = Cmt;
                 break;
         }
     }
@@ -283,6 +304,31 @@ void Execute::CompleteCycle()
  **************************************************************/
 void Execute::ReadCDB()
 {
+    vector<CDB_Entry> cdbData = CDB.Read();
+    vector<CDB_Entry>::iterator cdbEntry;
+    vector<ExListenCDB>::iterator listen_cdbEntry;
 
+    for(cdbEntry=cdbData.begin(); cdbEntry!=cdbData.end(); cdbEntry++)
+    {
+        for(listen_cdbEntry=cdbListen.begin(); listen_cdbEntry!=cdbListen.end(); listen_cdbEntry++)
+        {
+            if(cdbEntry->type == rob)
+            {
+                if(cdbEntry->destination == listen_cdbEntry->destination)
+                {
+                    if(listen_cdbEntry->operand == RS_j)
+                    {
+                        RS[listen_cdbEntry->rsNum].Qj = 0;
+                        RS[listen_cdbEntry->rsNum].Vj = cdbEntry->value;
+                    }
+                    else
+                    {
+                        RS[listen_cdbEntry->rsNum].Qk = 0;
+                        RS[listen_cdbEntry->rsNum].Vk = cdbEntry->value;
+                    }
+                }
+            }
+        }
+    }
 }
 

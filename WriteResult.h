@@ -24,8 +24,10 @@ public:
     WriteResult(ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);
     void RunCycle();
     void CompleteCycle();
-    void ReadCDB();
+    void ReadCDB(){};
 private:
+
+    vector<CDB_Entry> cdbWrite;
 
     ReservationStation& RS;
     ReorderBuffer& ROB;

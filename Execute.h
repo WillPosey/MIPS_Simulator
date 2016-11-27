@@ -11,6 +11,7 @@
 #include "PipelineStage.h"
 #include "MIPSdefs.h"
 #include "MainMemory.h"
+#include "RegisterFile.h"
 #include "BranchTargetBuffer.h"
 #include "ReservationStation.h"
 #include "ReorderBuffer.h"
@@ -20,13 +21,20 @@
 
 using namespace std;
 
+typedef enum
+{
+    RS_j,
+    RS_k
+} RS_Operand;
+
 struct ExListenCDB
 {
     int destination;
     int rsNum;
+    RS_Operand operand;
 };
 
-enum
+typedef enum
 {
     branchOutcome,
     addressCalc,
@@ -46,7 +54,7 @@ struct ExResult
 class Execute : public virtual PipelineStage
 {
 public:
-    Execute(MainMemory& memRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);
+    Execute(MainMemory& memRef, RegisterFile& rfRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, CommonDataBus& cdbRef);
     void RunCycle();
     void CompleteCycle();
     void ReadCDB();
@@ -58,6 +66,7 @@ private:
     vector<ExListenCDB> cdbListen;
     vector<ExResult> completeEx;
     MainMemory& memory;
+    RegisterFile& RF;
     BranchTargetBuffer& BTB;
     ReservationStation& RS;
     ReorderBuffer& ROB;

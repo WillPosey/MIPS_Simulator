@@ -29,7 +29,31 @@ WriteResult::WriteResult(ReservationStation& rsRef, ReorderBuffer& robRef, Commo
  **************************************************************/
 void WriteResult::RunCycle()
 {
+    InstructionType type;
+    int cycleNum;
+    string name;
+    CDB_Entry cdbEntry;
+    bool readyToWrite;
 
+    cdbWrite.clear();
+    cdbEntry.type = rob;
+
+    for(int i=0; i<RS.GetNumEntries(); i++)
+    {
+        cycleNum = RS[i].cycleNum;
+        type = RS[i].instruction.info.type;
+        name = RS[i].instruction.info.name;
+
+        readyToWrite =      ( (cycleNum == 1) && (type == SPECIAL || type == IMMEDIATE) )
+                        ||  ( (cycleNum == 2) && (!name.compare("LD")) );
+
+        if(readyToWrite)
+        {
+            cdbEntry.destination = RS[i].robDest;
+            cdbEntry.value = RS[i].result;
+            cdbWrite.push_back(cdbEntry);
+        }
+    }
 }
 
 /**************************************************************
@@ -39,16 +63,14 @@ void WriteResult::RunCycle()
  **************************************************************/
 void WriteResult::CompleteCycle()
 {
+    vector<CDB_Entry>::iterator cdbEntry;
 
-}
+    for(cdbEntry=cdbWrite.begin(); cdbEntry!=cdbWrite.end(); cdbEntry++)
+    {
+        ROB[cdbEntry->destination].value = cdbEntry->value;
+        ROB[cdbEntry->destination].state = Cmt;
+    }
 
-/**************************************************************
- *
- * 		WriteResult::ReadCDB
- *
- **************************************************************/
-void WriteResult::ReadCDB()
-{
-
+    CDB.Write(cdbWrite);
 }
 

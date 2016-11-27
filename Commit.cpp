@@ -32,10 +32,31 @@ Commit::Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& rob
  **************************************************************/
 void Commit::RunCycle()
 {
-    static int i=0;
+    InstructionType type;
+    string name;
 
-    if(++i == 25)
-        programFinished = true;
+    readyToCommit = false;
+
+    if(ROB.GetNumEntries() > 0)
+    {
+        robHeadIndex = ROB.GetHeadNumber();
+        type = ROB[robHeadIndex].instruction.type;
+        name = ROB[robHeadIndex].instruction.name;
+        if(ROB[robHeadIndex].state == Cmt)
+        {
+            if(!name.compare("BREAK"))
+                commitType = breakCmt;
+            else if(!name.compare("NOP"))
+                commitType = nopCmt;
+            else if(type == SPECIAL || type == IMMEDIATE || !name.compare("LD"))
+                commitType = wrReg;
+            else if(!name.compare("SD"))
+                commitType = wrMem;
+            else if(type == BRANCH || type == JUMP || type == REGIMM)
+                commitType = brCmt;
+            readyToCommit = true;
+        }
+    }
 }
 
 /**************************************************************
@@ -45,16 +66,24 @@ void Commit::RunCycle()
  **************************************************************/
 void Commit::CompleteCycle()
 {
+    CDB_Entry mispredictEntry;
+    vector<CDB_Entry> cdbWrite;
 
-}
+    if(readyToCommit)
+    {
+        switch(commitType)
+        {
+            case breakCmt:
 
-/**************************************************************
- *
- * 		Commit::ReadCDB
- *
- **************************************************************/
-void Commit::ReadCDB()
-{
+            case nopCmt:
 
+            case wrReg:
+
+            case wrMem:
+
+            case brCmt:
+
+        }
+    }
 }
 

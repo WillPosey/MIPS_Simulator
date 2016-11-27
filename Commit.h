@@ -20,14 +20,27 @@
 
 using namespace std;
 
+typedef enum
+{
+    wrReg,
+    wrMem,
+    brCmt,
+    nopCmt,
+    breakCmt
+} CmtType;
+
 class Commit : public virtual PipelineStage
 {
 public:
     Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef, bool& progComplete);
     void RunCycle();
     void CompleteCycle();
-    void ReadCDB();
+    void ReadCDB(){};
 private:
+
+    bool readyToCommit;
+    int robHeadIndex;
+    CmtType commitType;
 
     MainMemory& memory;
     ReservationStation& RS;
