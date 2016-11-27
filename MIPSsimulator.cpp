@@ -61,13 +61,30 @@ int main(int argc, char** argv)
 
     while(!programFinished)
     {
-        vector<PipelineStage*>::iterator stage;
+        /*vector<PipelineStage*>::iterator stage;
         for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
             (*stage)->RunCycle();
         for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
             (*stage)->CompleteCycle();
         for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
-            (*stage)->ReadCDB();
+            (*stage)->ReadCDB();*/
+        IF.RunCycle();
+        ID.RunCycle();
+        EX.RunCycle();
+        WR.RunCycle();
+        CM.RunCycle();
+
+        IF.CompleteCycle();
+        ID.CompleteCycle();
+        EX.CompleteCycle();
+        WR.CompleteCycle();
+        CM.CompleteCycle();
+
+        IF.ReadCDB();
+        ID.ReadCDB();
+        EX.ReadCDB();
+        WR.ReadCDB();
+        CM.ReadCDB();
         cycleOutput.WriteCycle(IQ, RS, ROB, BTB, RF, memory, programFinished);
     }
 

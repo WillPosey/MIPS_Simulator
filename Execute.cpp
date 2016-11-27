@@ -37,8 +37,13 @@ void Execute::RunCycle()
     completeEx.clear();
 
     for(int i=0; i<numRsEntries; i++)
-        if(CheckOperandsReady(i))
-            ExecuteInstruction(i);
+    {
+        if(RS[i].busy)
+        {
+            if(CheckOperandsReady(i))
+                ExecuteInstruction(i);
+        }
+    }
 }
 
 /**************************************************************

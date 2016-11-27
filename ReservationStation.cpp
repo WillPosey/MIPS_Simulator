@@ -18,9 +18,13 @@ void ReservationStation::CreateEntry(RS_Entry newEntry)
 {
     if(numEntries < 10)
     {
+        rs[nextAvailable] = newEntry;
+        rs[nextAvailable].busy = true;
+        robEntryToIndex[newEntry.robDest] = nextAvailable;
         numEntries++;
-        robEntryToIndex[newEntry.robDest] = rs.size();
-        rs.push_back(newEntry);
+        nextAvailable++;
+        if(nextAvailable==10)
+            nextAvailable = 0;
     }
 }
 
@@ -31,9 +35,26 @@ void ReservationStation::CreateEntry(RS_Entry newEntry)
  **************************************************************/
 void ReservationStation::MakeEntryAvailable(int robEntryNum)
 {
-    numEntries--;
-    rs.erase(rs.begin() + robEntryToIndex.at(robEntryNum));
+    rs[robEntryToIndex[robEntryNum]].busy = false;
     robEntryToIndex.erase(robEntryNum);
+    numEntries--;
+    rsHead++;
+    if(rsHead == 10)
+        rsHead = 0;
+}
+
+/**************************************************************
+ *
+ * 		ReservationStation::ClearAll
+ *
+ **************************************************************/
+void ReservationStation::ClearAll()
+{
+    numEntries = 0;
+    nextAvailable = 0;
+    rsHead = 0;
+    for(int i=0; i<10; i++)
+        rs[i].busy = false;
 }
 
 /**************************************************************
@@ -44,8 +65,13 @@ void ReservationStation::MakeEntryAvailable(int robEntryNum)
 string ReservationStation::GetContent()
 {
     string content = "RS:\r\n";
-    vector<RS_Entry>::iterator it;
-    for(it=rs.begin(); it!=rs.end(); it++)
-        content += "[" + it->instruction.instructionString + "]\r\n";
+    int curIndex = rsHead;
+    for(int i=0; i<numEntries; i++)
+    {
+        content += "[" + rs[curIndex].instruction.instructionString + "]\r\n";
+        curIndex++;
+        if(curIndex == 10)
+            curIndex = 0;
+    }
     return content;
 }

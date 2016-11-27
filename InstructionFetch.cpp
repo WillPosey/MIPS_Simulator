@@ -253,8 +253,10 @@ void InstructionFetch::BinaryStringToInstruction()
             break;
         case SPECIAL:
             if( !name.compare("BREAK") )
+            {
                 breakFound = true;
                 break;
+            }
             if(!name.compare("NOP") )
                 break;
             currentInstruction.info.rd = (currentInstruction.binary & SPECIAL_RD_MASK)>>SPECIAL_RD_SHIFT;

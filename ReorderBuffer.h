@@ -57,7 +57,7 @@ struct ROB_Entry
 class ReorderBuffer
 {
 public:
-    ReorderBuffer(){numEntries = 0; robNextEntry = 1;}
+    ReorderBuffer(){numEntries = 0; robHead = 1; robNextEntry = 1;}
 
     /* Operator overload for setting ROB entry (ReorderBuffer[entryNum] = entry;) */
     ROB_Entry& operator[] (unsigned int entryNum)
@@ -65,7 +65,7 @@ public:
         if(entryNum > 5)
             return rob[5];
 
-        return rob[robIndexes[entryNum]];
+        return rob[entryNum-1];
     }
 
     /* Operator overload for getting ROB entry (entry = ReorderBuffer[entryNum];) */
@@ -74,9 +74,7 @@ public:
         if(entryNum > 5)
             return rob[5];
 
-        int index = robIndexes.at(entryNum);
-
-        return rob[index];
+        return rob[entryNum-1];
     }
 
     bool Available(){return (numEntries < 6);}
@@ -85,15 +83,14 @@ public:
     bool CheckAddressCalc(int robNum);
     bool CheckLoadProceed(int robNum, int address);
     int GetNumEntries(){return numEntries;}
-    int GetHeadNumber(){return robEntryNum.at(0);}
+    int GetHeadNumber(){return robHead;}
+    void ClearEntry(int entryNum);
+    void ClearAll();
     string GetContent();
 
 private:
-    void ClearEntry(int entryNum);
-
-    vector<ROB_Entry> rob;
-    unordered_map<int,int> robIndexes;  /* maps rob entry num to index in vector (rob head always at vector index 0) */
-    unordered_map<int,int> robEntryNums;  /* maps index in vector to rob entry num */
+    ROB_Entry rob[6];
+    int robHead;
     int numEntries;
     int robNextEntry;
 };

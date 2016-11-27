@@ -7,6 +7,8 @@
  ************************************************/
 #include "Commit.h"
 
+#include <iostream>
+
 using namespace std;
 
 /**************************************************************
@@ -32,6 +34,8 @@ Commit::Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& rob
  **************************************************************/
 void Commit::RunCycle()
 {
+static int cycleCount = 0;
+cycleCount++;
     InstructionType type;
     string name;
 
@@ -40,10 +44,11 @@ void Commit::RunCycle()
     if(ROB.GetNumEntries() > 0)
     {
         robHeadIndex = ROB.GetHeadNumber();
-        type = ROB[robHeadIndex].instruction.type;
-        name = ROB[robHeadIndex].instruction.name;
+        type = ROB[robHeadIndex].instruction.info.type;
+        name = ROB[robHeadIndex].instruction.info.name;
         if(ROB[robHeadIndex].state == Cmt)
         {
+cout << "Cycle " << cycleCount << ": " << ROB[robHeadIndex].instruction.instructionString << endl;
             if(!name.compare("BREAK"))
                 commitType = breakCmt;
             else if(!name.compare("NOP"))
@@ -71,18 +76,49 @@ void Commit::CompleteCycle()
 
     if(readyToCommit)
     {
+        int dest = ROB[robHeadIndex].destinationAddress;
+        int val = ROB[robHeadIndex].value;
+
+        bool brPredict = ROB[robHeadIndex].instruction.branchHandle.prediction;
+        bool brOutcome = ROB[robHeadIndex].instruction.branchHandle.outcome;
+        int brDest = ROB[robHeadIndex].instruction.branchHandle.destination;
+        int brPC = ROB[robHeadIndex].instruction.PC + 4;
+
         switch(commitType)
         {
             case breakCmt:
-
+                programFinished = true;
+                break;
             case nopCmt:
-
+                ROB.ClearEntry(robHeadIndex);
+                break;
             case wrReg:
-
+                RF[dest].value = val;
+                RF[dest].busy = false;
+                RS.MakeEntryAvailable(robHeadIndex);
+                ROB.ClearEntry(robHeadIndex);
+                break;
             case wrMem:
-
+                memory[dest] = val;
+                RS.MakeEntryAvailable(robHeadIndex);
+                ROB.ClearEntry(robHeadIndex);
+                break;
             case brCmt:
-
+                if(brPredict != brOutcome)
+                {
+                    mispredictEntry.type = mispredict;
+                    mispredictEntry.value = (brPredict) ? brPC : brDest;
+                    cdbWrite.push_back(mispredictEntry);
+                    CDB.Write(cdbWrite);
+                    ROB.ClearAll();
+                    RS.ClearAll();
+                }
+                else
+                {
+                    RS.MakeEntryAvailable(robHeadIndex);
+                    ROB.ClearEntry(robHeadIndex);
+                }
+                break;
         }
     }
 }

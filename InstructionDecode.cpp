@@ -66,6 +66,7 @@ void InstructionDecode::RunCycle()
                 robEntry.instruction = currentInstruction;
                 robEntry.state = Ex;
                 rsEntry.instruction = currentInstruction;
+                rsEntry.cycleNum = 0;
                 rsEntry.busy = true;
                 GetOperands();
                 GetDestination();

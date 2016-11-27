@@ -35,7 +35,7 @@ struct RS_Entry
 class ReservationStation
 {
 public:
-    ReservationStation(){numEntries = 0;}
+    ReservationStation(){numEntries = nextAvailable = rsHead = 0;}
 
     /* Operator overload for setting RS entry (ReservationStation[entryNum] = entry;) */
     RS_Entry& operator[] (unsigned int entryNum)
@@ -59,12 +59,15 @@ public:
     int GetNumEntries(){return numEntries;}
     void CreateEntry(RS_Entry newEntry);
     void MakeEntryAvailable(int robEntryNum);
+    void ClearAll();
     string GetContent();
 
 private:
-    vector<RS_Entry> rs;
+    RS_Entry rs[10];
     unordered_map<int,int> robEntryToIndex;
     int numEntries;
+    int nextAvailable;
+    int rsHead;
 };
 
 #endif /* RES_STA_H */

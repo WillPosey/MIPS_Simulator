@@ -7,6 +7,8 @@
  ************************************************/
 #include "WriteResult.h"
 
+#include <iostream>
+
 using namespace std;
 
 /**************************************************************
@@ -40,18 +42,21 @@ void WriteResult::RunCycle()
 
     for(int i=0; i<RS.GetNumEntries(); i++)
     {
-        cycleNum = RS[i].cycleNum;
-        type = RS[i].instruction.info.type;
-        name = RS[i].instruction.info.name;
-
-        readyToWrite =      ( (cycleNum == 1) && (type == SPECIAL || type == IMMEDIATE) )
-                        ||  ( (cycleNum == 2) && (!name.compare("LD")) );
-
-        if(readyToWrite)
+        if(RS[i].busy)
         {
-            cdbEntry.destination = RS[i].robDest;
-            cdbEntry.value = RS[i].result;
-            cdbWrite.push_back(cdbEntry);
+            cycleNum = RS[i].cycleNum;
+            type = RS[i].instruction.info.type;
+            name = RS[i].instruction.info.name;
+
+            readyToWrite =      ( (cycleNum == 1) && (type == SPECIAL || type == IMMEDIATE) )
+                            ||  ( (cycleNum == 2) && (!name.compare("LD")) );
+
+            if(readyToWrite)
+            {
+                cdbEntry.destination = RS[i].robDest;
+                cdbEntry.value = RS[i].result;
+                cdbWrite.push_back(cdbEntry);
+            }
         }
     }
 }

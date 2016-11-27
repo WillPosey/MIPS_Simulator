@@ -18,38 +18,41 @@ int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
 {
     if(numEntries < 6)
     {
-        int createdEntryIndex = robNextEntry;
-        robIndexes[createdEntryIndex-1] = rob.size();
-        robEntryNums[rob.size()] = createdEntryIndex-1;
-        rob.push_back(newEntry);
-
+        rob[robNextEntry-1] = newEntry;
         numEntries++;
         robNextEntry++;
         if(robNextEntry == 7)
             robNextEntry = 1;
 
-        return createdEntryIndex;
+        return robNextEntry;
     }
     return -1;
 }
 
 /**************************************************************
  *
- * 		ReorderBuffer::CreateEntry
+ * 		ReorderBuffer::GetEntryByDestination
  *
  **************************************************************/
 int ReorderBuffer::GetEntryByDestination(int regNum)
 {
     int robNum = -1;
-    vector<ROB_Entry>::iterator robIter;
-    for(robIter=rob.begin(); robIter != rob.end(); robIter++)
+    int curIndex = robHead;
+    int counter = 0;
+
+    do
     {
-        if(robIter->destination == Reg && robIter->destinationAddress == regNum)
+        counter++;
+        if(rob[curIndex].destination == Reg && rob[curIndex].destinationAddress == regNum)
         {
-            robNum = robEntryNums[robIter-rob.begin()];
+            robNum = curIndex+1;
             break;
         }
-    }
+        curIndex++;
+        if(curIndex > 5)
+            curIndex = 0;
+    }while(counter <= numEntries);
+
     return robNum;
 }
 
@@ -60,19 +63,31 @@ int ReorderBuffer::GetEntryByDestination(int regNum)
  **************************************************************/
 bool ReorderBuffer::CheckAddressCalc(int robNum)
 {
-    bool allBeforeCalculated = true;
+    if(robNum == robHead)
+        return true;
 
-    for(int i=robIndexes.at(robNum)+1; i<rob.size(); i++)
+    bool allBeforeCalculated = true;
+    int curIndex;
+
+    if(robNum == 1)
+        curIndex = 5;
+    else
+        curIndex = robNum-2;
+
+    do
     {
-        if(rob[i].instruction.info.type == MEMORY)
+        if(rob[curIndex].instruction.info.type == MEMORY)
         {
-            if(!rob[i].addressPresent)
+            if(!rob[curIndex].addressPresent)
             {
                 allBeforeCalculated = false;
                 break;
             }
         }
-    }
+        curIndex--;
+        if(curIndex < 0)
+            curIndex = 5;
+    }while(curIndex!=robHead-2);
 
     return allBeforeCalculated;
 }
@@ -84,18 +99,61 @@ bool ReorderBuffer::CheckAddressCalc(int robNum)
  **************************************************************/
 bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
 {
-    bool storeComplete = true;
+    if(robNum == robHead)
+        return true;
 
-    for(int i=robIndexes.at(robNum)-1; i>=0; i--)
+    bool storeComplete = true;
+    int curIndex;
+
+    if(robNum == 1)
+        curIndex = 5;
+    else
+        curIndex = robNum-2;
+
+    do
     {
-        if(!rob[i].instruction.info.name.compare("SD"))
+        if(!rob[curIndex].instruction.info.name.compare("SD"))
         {
-            if(rob[i].destinationAddress == address)
+            if(rob[curIndex].destinationAddress == address)
                 storeComplete = false;
         }
-    }
+        curIndex--;
+        if(curIndex < 0)
+            curIndex = 5;
+    }while(curIndex!=robHead-2);
 
     return storeComplete;
+}
+
+/**************************************************************
+ *
+ * 		ReorderBuffer::ClearEntry
+ *
+ **************************************************************/
+void ReorderBuffer::ClearEntry(int entryNum)
+{
+    numEntries--;
+    rob[entryNum-1].busy = false;
+    if(robHead == entryNum)
+    {
+        robHead++;
+        if(robHead==7)
+            robHead = 1;
+    }
+}
+
+/**************************************************************
+ *
+ * 		ReorderBuffer::ClearAll
+ *
+ **************************************************************/
+void ReorderBuffer::ClearAll()
+{
+    numEntries = 0;
+    robNextEntry = 1;
+    robHead = 1;
+    for(int i=0; i<6; i++)
+        rob[i].busy = false;
 }
 
 /**************************************************************
@@ -106,8 +164,13 @@ bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
 string ReorderBuffer::GetContent()
 {
     string content = "ROB:\r\n";
-    vector<ROB_Entry>::iterator it;
-    for(it=rob.begin(); it!=rob.end(); it++)
-        content += "[" + it->instruction.instructionString + "]\r\n";
+    int curIndex = robHead-1;
+    for(int i=0; i<numEntries; i++)
+    {
+        content += "[" + rob[curIndex].instruction.instructionString + "]\r\n";
+        curIndex++;
+        if(curIndex == 6)
+            curIndex = 0;
+    }
     return content;
 }
