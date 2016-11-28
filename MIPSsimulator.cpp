@@ -37,11 +37,7 @@ int main(int argc, char** argv)
 
 	MainMemory memory;                          /* Main memory segment for simulation */
 	ProgramLoader loader (argv[1], memory);     /* Load instructions and data values into memory from input file */
-	CycleWriter cycleOutput (argv[2]);          /* Set output file name for CycleWriter */
-	if(argc == 4)                               /* Set the trace parameters for CycleWriter; default to tracing all cycles */
-        cycleOutput.SetTraceParameter(argv[3]);
-    else
-        cycleOutput.SetTraceParameter("all");
+	CycleWriter cycleOutput (argc, argv);          /* Set output file name and trace parameter for CycleWriter */
 
     InstructionQueue IQ;
     BranchTargetBuffer BTB;
@@ -55,36 +51,22 @@ int main(int argc, char** argv)
     InstructionDecode ID (IQ, RS, ROB, RF, CDB);
     Execute EX (memory, RF, BTB, RS, ROB, CDB);
     WriteResult WR (RS, ROB, CDB);
-    Commit CM (memory, RS, ROB, RF, CDB, programFinished);
+    Commit CM (memory, BTB, RS, ROB, RF, CDB, programFinished);
 
     vector<PipelineStage*> pipeline = {&IF, &ID, &EX, &WR, &CM};
+    vector<PipelineStage*>::iterator stage;
 
     while(!programFinished)
     {
-        /*vector<PipelineStage*>::iterator stage;
         for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
             (*stage)->RunCycle();
+
         for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
             (*stage)->CompleteCycle();
+
         for(stage=pipeline.begin(); stage!=pipeline.end(); stage++)
-            (*stage)->ReadCDB();*/
-        IF.RunCycle();
-        ID.RunCycle();
-        EX.RunCycle();
-        WR.RunCycle();
-        CM.RunCycle();
+            (*stage)->ReadCDB();
 
-        IF.CompleteCycle();
-        ID.CompleteCycle();
-        EX.CompleteCycle();
-        WR.CompleteCycle();
-        CM.CompleteCycle();
-
-        IF.ReadCDB();
-        ID.ReadCDB();
-        EX.ReadCDB();
-        WR.ReadCDB();
-        CM.ReadCDB();
         cycleOutput.WriteCycle(IQ, RS, ROB, BTB, RF, memory, programFinished);
     }
 

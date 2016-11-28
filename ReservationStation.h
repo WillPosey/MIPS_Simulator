@@ -8,8 +8,6 @@
 #ifndef RES_STA_H
 #define RES_STA_H
 
-#define NUM_RS_ENTRIES 10
-
 #include "MIPSdefs.h"
 
 #include <unordered_map>
@@ -30,30 +28,27 @@ struct RS_Entry
     int robDest;
     int address;
     int result;
+    bool hasWritten;
+    bool hasExecuted;
+
+    RS_Entry(): busy(false),
+                cycleNum(0),
+                Vj(0),
+                Vk(0),
+                Qj(0),
+                Qk(0),
+                robDest(0),
+                address(0),
+                result(0),
+                hasWritten(false),
+                hasExecuted(false)
+                {}
 };
 
 class ReservationStation
 {
 public:
-    ReservationStation(){numEntries = nextAvailable = rsHead = 0;}
-
-    /* Operator overload for setting RS entry (ReservationStation[entryNum] = entry;) */
-    RS_Entry& operator[] (unsigned int entryNum)
-    {
-        if(entryNum >= numEntries)
-            return rs[numEntries-1];
-
-        return rs[entryNum];
-    }
-
-    /* Operator overload for getting RS entry (entry = ReservationStation[entryNum];) */
-    RS_Entry operator[] (unsigned int entryNum) const
-    {
-        if(entryNum >= numEntries)
-            return rs[numEntries-1];
-
-        return rs[entryNum];
-    }
+    ReservationStation(){numEntries = 0;}
 
     bool Available(){return (numEntries < 10);}
     int GetNumEntries(){return numEntries;}
@@ -61,13 +56,15 @@ public:
     void MakeEntryAvailable(int robEntryNum);
     void ClearAll();
     string GetContent();
+    RS_Entry GetEntry(int index){return rs[index];}
+    RS_Entry GetEntryByROB(int robEntryNum, int& rsNum);
+    void SetEntry(int index, RS_Entry updated){rs[index] = updated;}
 
 private:
     RS_Entry rs[10];
     unordered_map<int,int> robEntryToIndex;
+    vector<int> entryOrder;
     int numEntries;
-    int nextAvailable;
-    int rsHead;
 };
 
 #endif /* RES_STA_H */

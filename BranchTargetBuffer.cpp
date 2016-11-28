@@ -69,13 +69,13 @@ void BranchTargetBuffer::CreateEntry(int srcAddress, int destAddress, bool predi
     BTB_Entry* newEntry = new BTB_Entry(srcAddress, destAddress, prediction);
     hashTable[srcAddress] = newEntry;
 
-    if(numEntries < NUM_BTB_ENTRIES)
+    if(numEntries < 16)
     {
         numEntries++;
         indexHashTable[newEntry] = numEntries;
         reverseIndexHashTable[numEntries] = newEntry;
         if(numEntries == 1)
-            LRU = MRU = newEntry;
+            LRU = newEntry;
     }
     else
     {

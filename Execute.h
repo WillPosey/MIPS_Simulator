@@ -23,20 +23,8 @@ using namespace std;
 
 typedef enum
 {
-    RS_j,
-    RS_k
-} RS_Operand;
-
-struct ExListenCDB
-{
-    int destination;
-    int rsNum;
-    RS_Operand operand;
-};
-
-typedef enum
-{
     branchOutcome,
+    jumpCalc,
     addressCalc,
     alu,
     ldMem,
@@ -63,8 +51,11 @@ private:
     bool CheckOperandsReady(int rsIndex);
     void ExecuteInstruction(int rsIndex);
 
-    vector<ExListenCDB> cdbListen;
+    vector<ListenCDB> cdbListen;
     vector<ExResult> completeEx;
+    RS_Entry currentRS;
+    ROB_Entry currentROB;
+
     MainMemory& memory;
     RegisterFile& RF;
     BranchTargetBuffer& BTB;

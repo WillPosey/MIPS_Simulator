@@ -21,6 +21,7 @@ public:
     {
         uint8_t byte;
         int byteNum;
+        int memVal;
 
         /* Open the MIPS binary input file */
         ifstream binStream (filename.c_str(), ios::binary);
@@ -35,12 +36,13 @@ public:
             /* Fill memory with instructions and data */
             for(int address=ADDRESS_START; address<=lastAddress; address+=4)
             {
-                memory[address] = 0;
+                memVal = 0;
                 for(int byteNum=3; byteNum>=0; byteNum--)
                 {
                     binStream.read((char*)&byte, 1);
-                    memory[address] |= (byte<<(byteNum*8));
+                    memVal |= (byte<<(byteNum*8));
                 }
+                memory.SetValue(address, memVal);
             }
             binStream.close();
         }

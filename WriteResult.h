@@ -29,6 +29,9 @@ private:
 
     vector<CDB_Entry> cdbWrite;
 
+    RS_Entry currentRS;
+    ROB_Entry currentROB;
+
     ReservationStation& RS;
     ReorderBuffer& ROB;
     CommonDataBus& CDB;

@@ -70,17 +70,16 @@ void InstructionFetch::CompleteCycle()
  **************************************************************/
 void InstructionFetch::ReadCDB()
 {
-    /* Handle branch misprediction */
-    vector<CDB_Entry>::iterator it;
-    CDB_Entry currentEntry;
-    vector<CDB_Entry> CDBEntries = CDB.Read();
-    for(it=CDBEntries.begin(); it!=CDBEntries.end(); it++)
+    vector<CDB_Entry> cdbData = CDB.Read();
+    vector<CDB_Entry>::iterator cdbEntry;
+
+    for(cdbEntry=cdbData.begin(); cdbEntry!=cdbData.end(); cdbEntry++)
     {
-        currentEntry = *it;
-        if(currentEntry.type == mispredict)
+        if(cdbEntry->type == mispredict)
         {
             IQ.Flush();
-            UpdateProgramCounter(currentEntry.value);
+            UpdateProgramCounter(cdbEntry->value);
+            breakFound = lastInstruction = false;
         }
     }
 }
@@ -106,7 +105,10 @@ void InstructionFetch::CheckBTB()
         }
     }
     else
+    {
+        currentInstruction.branchHandle.prediction = false;
         IncrementProgramCounter();
+    }
 }
 
 /**************************************************************
@@ -152,7 +154,7 @@ void InstructionFetch::GetNextInstruction()
                                = currentInstruction.info.immVal
                                = -1;
 
-    currentInstruction.binary = memory[programCounter];
+    currentInstruction.binary = memory.GetValue(programCounter);
     GetInstructionInfo();
 }
 
@@ -538,10 +540,13 @@ string InstructionFetch::GetImmediateValue(uint16_t binary, bool unsignedValue)
         oStr << "-";
         binary = (~binary) + 1;
         oStr << binary;
+        currentInstruction.info.immVal = binary*-1;
     }
     else
+    {
         oStr << binary;
-    currentInstruction.info.immVal = binary;
+        currentInstruction.info.immVal = binary;
+    }
     return oStr.str();
 }
 

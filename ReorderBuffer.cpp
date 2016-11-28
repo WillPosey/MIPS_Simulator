@@ -18,13 +18,14 @@ int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
 {
     if(numEntries < 6)
     {
+        int newEntryNum = robNextEntry;
         rob[robNextEntry-1] = newEntry;
         numEntries++;
         robNextEntry++;
         if(robNextEntry == 7)
             robNextEntry = 1;
 
-        return robNextEntry;
+        return newEntryNum;
     }
     return -1;
 }
@@ -67,16 +68,20 @@ bool ReorderBuffer::CheckAddressCalc(int robNum)
         return true;
 
     bool allBeforeCalculated = true;
-    int curIndex;
+    int curIndex, stopIndex;
 
     if(robNum == 1)
         curIndex = 5;
     else
         curIndex = robNum-2;
 
+    stopIndex = robHead - 2;
+    if(stopIndex < 0)
+        stopIndex = 5;
+
     do
     {
-        if(rob[curIndex].instruction.info.type == MEMORY)
+        if(rob[curIndex].busy && rob[curIndex].instruction.info.type == MEMORY)
         {
             if(!rob[curIndex].addressPresent)
             {
@@ -87,7 +92,7 @@ bool ReorderBuffer::CheckAddressCalc(int robNum)
         curIndex--;
         if(curIndex < 0)
             curIndex = 5;
-    }while(curIndex!=robHead-2);
+    }while(curIndex!=stopIndex);
 
     return allBeforeCalculated;
 }
@@ -103,12 +108,16 @@ bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
         return true;
 
     bool storeComplete = true;
-    int curIndex;
+    int curIndex, stopIndex;
 
     if(robNum == 1)
         curIndex = 5;
     else
         curIndex = robNum-2;
+
+    stopIndex = robHead - 2;
+    if(stopIndex < 0)
+        stopIndex = 5;
 
     do
     {
@@ -120,7 +129,7 @@ bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
         curIndex--;
         if(curIndex < 0)
             curIndex = 5;
-    }while(curIndex!=robHead-2);
+    }while(curIndex!=stopIndex);
 
     return storeComplete;
 }
@@ -135,11 +144,7 @@ void ReorderBuffer::ClearEntry(int entryNum)
     numEntries--;
     rob[entryNum-1].busy = false;
     if(robHead == entryNum)
-    {
-        robHead++;
-        if(robHead==7)
-            robHead = 1;
-    }
+        robHead = (robHead==6) ? 1 : robHead+1;
 }
 
 /**************************************************************

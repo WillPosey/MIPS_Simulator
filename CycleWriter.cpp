@@ -16,11 +16,15 @@ using namespace std;
  * 		CycleWriter Constructor
  *
  **************************************************************/
-CycleWriter::CycleWriter(string filename)
+CycleWriter::CycleWriter(int argc, char** argv)
 {
-    outStream.open(filename);
+    outStream.open(argv[2]);
     traceAll = false;
     traceStart = traceEnd = 0;
+    if(argc == 4)
+        SetTraceParameter(argv[3]);
+    else
+        SetTraceParameter("all");
 }
 
 /**************************************************************
@@ -57,12 +61,7 @@ void CycleWriter::WriteCycle(InstructionQueue IQ, ReservationStation RS, Reorder
     static int cycleNum = 0;
     cycleNum++;
 
-    string cycleContent;
-
-    if(finalCycle)
-        cycleContent = "Final Cycle <" + to_string(cycleNum) + ">:\r\n";
-    else
-        cycleContent = "Cycle <" + to_string(cycleNum) + ">:\r\n";
+    string cycleContent = "Cycle <" + to_string(cycleNum) + ">:\r\n";
 
     cycleContent += IQ.GetContents();
     cycleContent += RS.GetContent();

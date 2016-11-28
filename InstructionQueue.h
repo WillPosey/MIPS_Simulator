@@ -31,7 +31,7 @@ public:
      **************************************************************/
     void Flush()
     {
-        for(int i=0; i<instrQueue.size(); i++)
+        while(!instrQueue.empty())
             instrQueue.pop();
     }
 

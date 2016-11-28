@@ -11,6 +11,7 @@
 #include "PipelineStage.h"
 #include "MIPSdefs.h"
 #include "MainMemory.h"
+#include "BranchTargetBuffer.h"
 #include "ReservationStation.h"
 #include "ReorderBuffer.h"
 #include "RegisterFile.h"
@@ -25,6 +26,7 @@ typedef enum
     wrReg,
     wrMem,
     brCmt,
+    jmpCmt,
     nopCmt,
     breakCmt
 } CmtType;
@@ -32,17 +34,21 @@ typedef enum
 class Commit : public virtual PipelineStage
 {
 public:
-    Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef, bool& progComplete);
+    Commit(MainMemory& memRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef, bool& progComplete);
     void RunCycle();
     void CompleteCycle();
-    void ReadCDB(){};
+    void ReadCDB();
 private:
 
     bool readyToCommit;
     int robHeadIndex;
     CmtType commitType;
 
+    RS_Entry currentRS;
+    ROB_Entry currentROB;
+
     MainMemory& memory;
+    BranchTargetBuffer& BTB;
     ReservationStation& RS;
     ReorderBuffer& ROB;
     RegisterFile& RF;

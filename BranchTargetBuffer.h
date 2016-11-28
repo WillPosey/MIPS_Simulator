@@ -8,8 +8,6 @@
 #ifndef BTB_H
 #define BTB_H
 
-#define NUM_BTB_ENTRIES 16
-
 #include <string>
 #include <unordered_map>
 #include <cstddef>

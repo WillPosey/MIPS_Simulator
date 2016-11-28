@@ -28,23 +28,11 @@ struct RF_Entry
 class RegisterFile
 {
 public:
-    /* Operator overload for setting register value (RegisterFile[registerNum] = value;) */
-    RF_Entry& operator[] (unsigned int regNum)
-    {
-        if(regNum > 31)
-            return registerFileContent[31];
-
-        return registerFileContent[regNum];
-    }
-
-    /* Operator overload for getting register value (value = RegisterFile[registerNum];) */
-    RF_Entry operator[] (unsigned int regNum) const
-    {
-        if(regNum > 31)
-            return registerFileContent[31];
-
-        return registerFileContent[regNum];
-    }
+    RF_Entry GetReg(int regNum){return registerFileContent[regNum];}
+    void SetReg(int regNum, RF_Entry update){registerFileContent[regNum] = update;}
+    bool IsBusy(int regNum){return registerFileContent[regNum].busy;}
+    int GetROB(int regNum){return registerFileContent[regNum].robNumber;}
+    int GetValue(int regNum){return registerFileContent[regNum].value;}
 
     /* Returns content of all registers as a string */
     string GetContents()
@@ -62,7 +50,8 @@ public:
 
             for(int j=0; j<8; j++)
             {
-                content += to_string(registerFileContent[regNum++].value);
+                content += to_string(registerFileContent[regNum].value);
+                regNum++;
                 if(j!=8)
                     content += "\t";
             }

@@ -10,8 +10,6 @@
 
 #include "MIPSdefs.h"
 
-#define NUM_ROB_ENTRIES 6
-
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -59,27 +57,11 @@ class ReorderBuffer
 public:
     ReorderBuffer(){numEntries = 0; robHead = 1; robNextEntry = 1;}
 
-    /* Operator overload for setting ROB entry (ReorderBuffer[entryNum] = entry;) */
-    ROB_Entry& operator[] (unsigned int entryNum)
-    {
-        if(entryNum > 5)
-            return rob[5];
-
-        return rob[entryNum-1];
-    }
-
-    /* Operator overload for getting ROB entry (entry = ReorderBuffer[entryNum];) */
-    ROB_Entry operator[] (unsigned int entryNum) const
-    {
-        if(entryNum > 5)
-            return rob[5];
-
-        return rob[entryNum-1];
-    }
-
     bool Available(){return (numEntries < 6);}
     int CreateEntry(ROB_Entry newEntry);
     int GetEntryByDestination(int regNum);
+    ROB_Entry GetEntry(int robNum){return rob[robNum-1];}
+    void SetEntry(int robNum, ROB_Entry update){rob[robNum-1] = update;}
     bool CheckAddressCalc(int robNum);
     bool CheckLoadProceed(int robNum, int address);
     int GetNumEntries(){return numEntries;}

@@ -26,15 +26,16 @@ public:
     InstructionDecode(InstructionQueue& iqRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef);
     void RunCycle();
     void CompleteCycle();
-    void ReadCDB(){};
+    void ReadCDB();
 
 private:
     void GetOperands();
     void GetDestination();
 
     Instruction currentInstruction;
-    ROB_Entry robEntry;
-    RS_Entry rsEntry;
+    ROB_Entry robEntry, currentROB;
+    RS_Entry rsEntry, currentRS;
+    vector<ListenCDB> cdbListen;
 
     bool stall;
     bool nop_break;

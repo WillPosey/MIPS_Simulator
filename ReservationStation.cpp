@@ -16,15 +16,25 @@ using namespace std;
  **************************************************************/
 void ReservationStation::CreateEntry(RS_Entry newEntry)
 {
+    int nextAvailable;
     if(numEntries < 10)
     {
+        for(int i=0; i<10; i++)
+        {
+            if(!rs[i].busy)
+            {
+                nextAvailable = i;
+                break;
+            }
+        }
+
         rs[nextAvailable] = newEntry;
         rs[nextAvailable].busy = true;
+        rs[nextAvailable].hasWritten = false;
+        rs[nextAvailable].hasExecuted = false;
         robEntryToIndex[newEntry.robDest] = nextAvailable;
+        entryOrder.push_back(nextAvailable);
         numEntries++;
-        nextAvailable++;
-        if(nextAvailable==10)
-            nextAvailable = 0;
     }
 }
 
@@ -35,12 +45,30 @@ void ReservationStation::CreateEntry(RS_Entry newEntry)
  **************************************************************/
 void ReservationStation::MakeEntryAvailable(int robEntryNum)
 {
-    rs[robEntryToIndex[robEntryNum]].busy = false;
+    int index = robEntryToIndex.at(robEntryNum);
     robEntryToIndex.erase(robEntryNum);
+    rs[index].busy = false;
+    int orderIndex = 0;
+    for(int i=0; i<entryOrder.size(); i++)
+    {
+        if(entryOrder[i] == index)
+            break;
+        orderIndex++;
+    }
+    entryOrder.erase(entryOrder.begin() + orderIndex);
     numEntries--;
-    rsHead++;
-    if(rsHead == 10)
-        rsHead = 0;
+}
+
+/**************************************************************
+ *
+ * 		ReservationStation::GetEntryByROB
+ *
+ **************************************************************/
+RS_Entry ReservationStation::GetEntryByROB(int robEntryNum, int&rsNum)
+{
+    int index = robEntryToIndex.at(robEntryNum);
+    rsNum = index;
+    return rs[index];
 }
 
 /**************************************************************
@@ -51,10 +79,9 @@ void ReservationStation::MakeEntryAvailable(int robEntryNum)
 void ReservationStation::ClearAll()
 {
     numEntries = 0;
-    nextAvailable = 0;
-    rsHead = 0;
     for(int i=0; i<10; i++)
         rs[i].busy = false;
+    entryOrder.clear();
 }
 
 /**************************************************************
@@ -65,13 +92,7 @@ void ReservationStation::ClearAll()
 string ReservationStation::GetContent()
 {
     string content = "RS:\r\n";
-    int curIndex = rsHead;
-    for(int i=0; i<numEntries; i++)
-    {
-        content += "[" + rs[curIndex].instruction.instructionString + "]\r\n";
-        curIndex++;
-        if(curIndex == 10)
-            curIndex = 0;
-    }
+    for(int i=0; i<entryOrder.size(); i++)
+        content += "[" + rs[entryOrder[i]].instruction.instructionString + "]\r\n";
     return content;
 }

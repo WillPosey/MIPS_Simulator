@@ -32,7 +32,6 @@ WriteResult::WriteResult(ReservationStation& rsRef, ReorderBuffer& robRef, Commo
 void WriteResult::RunCycle()
 {
     InstructionType type;
-    int cycleNum;
     string name;
     CDB_Entry cdbEntry;
     bool readyToWrite;
@@ -40,21 +39,22 @@ void WriteResult::RunCycle()
     cdbWrite.clear();
     cdbEntry.type = rob;
 
-    for(int i=0; i<RS.GetNumEntries(); i++)
+    for(int i=0; i<10; i++)
     {
-        if(RS[i].busy)
+        currentRS = RS.GetEntry(i);
+        if(currentRS.busy && currentRS.hasExecuted && !currentRS.hasWritten)
         {
-            cycleNum = RS[i].cycleNum;
-            type = RS[i].instruction.info.type;
-            name = RS[i].instruction.info.name;
+            type = currentRS.instruction.info.type;
+            name = currentRS.instruction.info.name;
 
-            readyToWrite =      ( (cycleNum == 1) && (type == SPECIAL || type == IMMEDIATE) )
-                            ||  ( (cycleNum == 2) && (!name.compare("LD")) );
+            readyToWrite = (type == SPECIAL || type == IMMEDIATE || (!name.compare("LW")) );
 
             if(readyToWrite)
             {
-                cdbEntry.destination = RS[i].robDest;
-                cdbEntry.value = RS[i].result;
+                currentRS.hasWritten = true;
+                RS.SetEntry(i, currentRS);
+                cdbEntry.destination = currentRS.robDest;
+                cdbEntry.value = currentRS.result;
                 cdbWrite.push_back(cdbEntry);
             }
         }
@@ -72,10 +72,13 @@ void WriteResult::CompleteCycle()
 
     for(cdbEntry=cdbWrite.begin(); cdbEntry!=cdbWrite.end(); cdbEntry++)
     {
-        ROB[cdbEntry->destination].value = cdbEntry->value;
-        ROB[cdbEntry->destination].state = Cmt;
+        currentROB = ROB.GetEntry(cdbEntry->destination);
+        currentROB.value = cdbEntry->value;
+        currentROB.state = Cmt;
+        ROB.SetEntry(cdbEntry->destination, currentROB);
     }
 
-    CDB.Write(cdbWrite);
+    if(cdbWrite.size() > 0)
+        CDB.Write(cdbWrite);
 }
 

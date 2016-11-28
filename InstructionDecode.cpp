@@ -35,6 +35,7 @@ InstructionDecode::InstructionDecode(InstructionQueue& iqRef, ReservationStation
  **************************************************************/
 void InstructionDecode::RunCycle()
 {
+    cdbListen.clear();
     stall = false;
     nop_break = false;
     if(IQ.NotEmpty())
@@ -56,25 +57,25 @@ void InstructionDecode::RunCycle()
             else
                 stall = true;
         }
-        /* Reserve RS and ROB entries, if avilable */
-        else
+        /* Reserve RS and ROB entries, if available */
+        else if(RS.Available() && ROB.Available())
         {
-            if(RS.Available() && ROB.Available())
-            {
-                IQ.Pop();
-                robEntry.busy = true;
-                robEntry.instruction = currentInstruction;
-                robEntry.state = Ex;
-                rsEntry.instruction = currentInstruction;
-                rsEntry.cycleNum = 0;
-                rsEntry.busy = true;
-                GetOperands();
-                GetDestination();
-                /* determine operands, destination, etc */
-            }
-            else
-                stall = true;
+            IQ.Pop();
+            robEntry.addressPresent = false;
+            robEntry.busy = true;
+            robEntry.instruction = currentInstruction;
+            robEntry.state = Ex;
+            rsEntry.instruction = currentInstruction;
+            rsEntry.cycleNum = 0;
+            rsEntry.busy = true;
+            rsEntry.hasWritten = false;
+            rsEntry.hasExecuted = false;
+            GetOperands();
+            GetDestination();
+            /* determine operands, destination, etc */
         }
+        else
+            stall = true;
     }
     else
         stall = true;
@@ -87,6 +88,8 @@ void InstructionDecode::RunCycle()
  **************************************************************/
 void InstructionDecode::CompleteCycle()
 {
+    RF_Entry regEntry;
+
     if(stall)
         return;
 
@@ -102,8 +105,10 @@ void InstructionDecode::CompleteCycle()
         RS.CreateEntry(rsEntry);
         if(robEntry.destination == Reg)
         {
-            RF[robEntry.destinationAddress].busy = true;
-            RF[robEntry.destinationAddress].robNumber = rsEntry.robDest;
+            regEntry = RF.GetReg(robEntry.destinationAddress);
+            regEntry.busy = true;
+            regEntry.robNumber = rsEntry.robDest;
+            RF.SetReg(robEntry.destinationAddress, regEntry);
         }
     }
 }
@@ -120,48 +125,61 @@ void InstructionDecode::GetOperands()
     int rd = currentInstruction.info.rd;
     int immVal = currentInstruction.info.immVal;
     string name = currentInstruction.info.name;
+    ListenCDB cdbListenEntry;
     int robNum;
 
     switch(currentInstruction.info.type)
     {
         case MEMORY:
             /* VJ, QJ*/
-            if(!RF[rs].busy)
+            if(!RF.IsBusy(rs))
             {
                 rsEntry.Qj = 0;
-                rsEntry.Vj = RF[rs].value;
+                rsEntry.Vj = RF.GetValue(rs);
             }
             else
             {
-                robNum = RF[rs].robNumber;
-                if(ROB[robNum].state == Cmt)
+                robNum = RF.GetROB(rs);
+                currentROB = ROB.GetEntry(robNum);
+                if(currentROB.state == Cmt)
                 {
                     rsEntry.Qj = 0;
-                    rsEntry.Vj = ROB[robNum].value;
+                    rsEntry.Vj = currentROB.value;
                 }
                 else
+                {
                     rsEntry.Qj = robNum;
+                    cdbListenEntry.operand = RS_j;
+                    cdbListenEntry.destination = robNum;
+                    cdbListen.push_back(cdbListenEntry);
+                }
             }
             rsEntry.address = currentInstruction.info.offset;
             rsEntry.Qk = 0;
             break;
         case IMMEDIATE:
             /* VJ, QJ*/
-            if(!RF[rs].busy)
+            if(!RF.IsBusy(rs))
             {
                 rsEntry.Qj = 0;
-                rsEntry.Vj = RF[rs].value;
+                rsEntry.Vj = RF.GetValue(rs);
             }
             else
             {
-                robNum = RF[rs].robNumber;
-                if(ROB[robNum].state == Cmt)
+                robNum = RF.GetROB(rs);
+                currentROB = ROB.GetEntry(robNum);
+                if(currentROB.state == Cmt)
                 {
                     rsEntry.Qj = 0;
-                    rsEntry.Vj = ROB[robNum].value;
+                    rsEntry.Vj = currentROB.value;
                 }
                 else
+                {
                     rsEntry.Qj = robNum;
+                    cdbListenEntry.operand = RS_j;
+                    cdbListenEntry.destination = robNum;
+                    cdbListen.push_back(cdbListenEntry);
+                }
             }
             rsEntry.Qk = 0;
             rsEntry.Vk = currentInstruction.info.immVal;
@@ -169,38 +187,50 @@ void InstructionDecode::GetOperands()
         case SPECIAL:
         case BRANCH:
             /* VJ, QJ*/
-            if(!RF[rs].busy)
+            if(!RF.IsBusy(rs))
             {
                 rsEntry.Qj = 0;
-                rsEntry.Vj = RF[rs].value;
+                rsEntry.Vj = RF.GetValue(rs);
             }
             else
             {
-                robNum = RF[rs].robNumber;
-                if(ROB[robNum].state == Cmt)
+                robNum = RF.GetROB(rs);
+                currentROB = ROB.GetEntry(robNum);
+                if(currentROB.state == Cmt)
                 {
                     rsEntry.Qj = 0;
-                    rsEntry.Vj = ROB[robNum].value;
+                    rsEntry.Vj = currentROB.value;
                 }
                 else
+                {
                     rsEntry.Qj = robNum;
+                    cdbListenEntry.operand = RS_j;
+                    cdbListenEntry.destination = robNum;
+                    cdbListen.push_back(cdbListenEntry);
+                }
             }
             /* Vk, Qk*/
-            if(!RF[rt].busy)
+            if(!RF.IsBusy(rt))
             {
                 rsEntry.Qk = 0;
-                rsEntry.Vk = RF[rt].value;
+                rsEntry.Vk = RF.GetValue(rt);
             }
             else
             {
-                robNum = RF[rt].robNumber;
-                if(ROB[robNum].state == Cmt)
+                robNum = RF.GetROB(rt);
+                currentROB = ROB.GetEntry(robNum);
+                if(currentROB.state == Cmt)
                 {
                     rsEntry.Qk = 0;
-                    rsEntry.Vk = ROB[robNum].value;
+                    rsEntry.Vk = currentROB.value;
                 }
                 else
+                {
                     rsEntry.Qk = robNum;
+                    cdbListenEntry.operand = RS_k;
+                    cdbListenEntry.destination = robNum;
+                    cdbListen.push_back(cdbListenEntry);
+                }
             }
             break;
         case JUMP:
@@ -209,21 +239,27 @@ void InstructionDecode::GetOperands()
             break;
         case REGIMM:
             /* VJ, QJ*/
-            if(!RF[rs].busy)
+            if(!RF.IsBusy(rs))
             {
                 rsEntry.Qj = 0;
-                rsEntry.Vj = RF[rs].value;
+                rsEntry.Vj = RF.GetValue(rs);
             }
             else
             {
-                robNum = RF[rs].robNumber;
-                if(ROB[robNum].state == Cmt)
+                robNum = RF.GetROB(rs);
+                currentROB = ROB.GetEntry(robNum);
+                if(currentROB.state == Cmt)
                 {
                     rsEntry.Qj = 0;
-                    rsEntry.Vj = ROB[robNum].value;
+                    rsEntry.Vj = currentROB.value;
                 }
                 else
+                {
                     rsEntry.Qj = robNum;
+                    cdbListenEntry.operand = RS_j;
+                    cdbListenEntry.destination = robNum;
+                    cdbListen.push_back(cdbListenEntry);
+                }
             }
             rsEntry.Qk = 0;
             break;
@@ -244,7 +280,7 @@ void InstructionDecode::GetDestination()
     switch(currentInstruction.info.type)
     {
         case MEMORY:
-            if(!name.compare("SD"))
+            if(!name.compare("SW"))
                 robEntry.destination = Mem;
             else
             {
@@ -268,3 +304,37 @@ void InstructionDecode::GetDestination()
     }
 }
 
+/**************************************************************
+ *
+ * 		InstructionDecode::ReadCDB
+ *
+ **************************************************************/
+void InstructionDecode::ReadCDB()
+{
+    vector<CDB_Entry> cdbData = CDB.Read();
+    vector<CDB_Entry>::iterator cdbEntry;
+    vector<ListenCDB>::iterator listen_cdbEntry;
+    int rsNum;
+
+    for(cdbEntry=cdbData.begin(); cdbEntry!=cdbData.end(); cdbEntry++)
+    {
+        for(listen_cdbEntry=cdbListen.begin(); listen_cdbEntry!=cdbListen.end(); listen_cdbEntry++)
+        {
+            if(cdbEntry->type == rob && cdbEntry->destination == listen_cdbEntry->destination)
+            {
+                currentRS = RS.GetEntryByROB(rsEntry.robDest, rsNum);
+                if(listen_cdbEntry->operand == RS_j)
+                {
+                    currentRS.Qj = 0;
+                    currentRS.Vj = cdbEntry->value;
+                }
+                else
+                {
+                    currentRS.Qk = 0;
+                    currentRS.Vk = cdbEntry->value;
+                }
+                RS.SetEntry(rsNum, currentRS);
+            }
+        }
+    }
+}

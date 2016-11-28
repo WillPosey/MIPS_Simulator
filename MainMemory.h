@@ -21,9 +21,7 @@ using namespace std;
 class MainMemory
 {
 public:
-    /* Operator overload for setting memory value (MainMemory[address] = value;) */
-    /* Ensures that memory that doesn't exist (not in vector) is "allocated" */
-    uint32_t& operator[] (int address)
+    int32_t GetValue(int address)
     {
         int realIndex = (address-ADDRESS_START) / 4.0;
         int lastIndex = memoryContent.size()-1;
@@ -37,17 +35,18 @@ public:
         return memoryContent[realIndex];
     }
 
-    /* Operator overload for getting memory value (value = MainMemory[address];) */
-    /* Ensures that memory that doesn't exist (not in vector) is "allocated" */
-    uint32_t operator[] (int address) const
+    void SetValue(int address, int value)
     {
         int realIndex = (address-ADDRESS_START) / 4.0;
         int lastIndex = memoryContent.size()-1;
 
         if(realIndex > lastIndex)
-            return 0;
+        {
+            for(int i=0; i < (realIndex - lastIndex); i++)
+                memoryContent.push_back(0);
+        }
 
-        return memoryContent[realIndex];
+        memoryContent[realIndex] = value;
     }
 
     /* Returns a string with the integer value at each memory location */
@@ -62,7 +61,7 @@ public:
         for(int i=startIndex; i<memoryContent.size(); i++)
         {
             content += to_string((int32_t) memoryContent[i] );
-            if(i!=memoryContent.size())
+            if(i!=memoryContent.size()-1)
                 content += "\t";
             address+=4;
         }
@@ -71,7 +70,7 @@ public:
     }
 
 private:
-    vector<uint32_t> memoryContent;
+    vector<int32_t> memoryContent;
 };
 
 #endif /* MAIN_MEMORY_H */

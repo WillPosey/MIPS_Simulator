@@ -19,6 +19,7 @@ typedef enum
 {
     rob,
     address,
+    storeReady,
     mispredict
 } CDB_Type;
 
@@ -27,6 +28,19 @@ struct CDB_Entry
     CDB_Type type;
     int destination;
     int value;
+};
+
+typedef enum
+{
+    RS_j,
+    RS_k
+} RS_Operand;
+
+struct ListenCDB
+{
+    int destination;
+    int rsNum;
+    RS_Operand operand;
 };
 
 class CommonDataBus
@@ -57,6 +71,7 @@ public:
     {
         return cdbContents;
     }
+
 private:
     vector<CDB_Entry> cdbContents;
 };

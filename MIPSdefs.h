@@ -11,6 +11,7 @@
 #ifndef MIPSDEFS_H_
 #define MIPSDEFS_H_
 
+#include <iostream>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -133,7 +134,7 @@ struct InstructionInfo
 struct Instruction
 {
     int PC;
-    uint32_t binary;
+    int32_t binary;
     string binaryString;
     string instructionString;
     InstructionInfo info;

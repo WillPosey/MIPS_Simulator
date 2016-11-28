@@ -16,8 +16,9 @@ using namespace std;
  * 		Commit Constructor
  *
  **************************************************************/
-Commit::Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef, bool& progComplete)
+Commit::Commit(MainMemory& memRef, BranchTargetBuffer& btbRef, ReservationStation& rsRef, ReorderBuffer& robRef, RegisterFile& rfRef, CommonDataBus& cdbRef, bool& progComplete)
 :   memory(memRef),
+    BTB(btbRef),
     RS(rsRef),
     ROB(robRef),
     RF(rfRef),
@@ -34,8 +35,6 @@ Commit::Commit(MainMemory& memRef, ReservationStation& rsRef, ReorderBuffer& rob
  **************************************************************/
 void Commit::RunCycle()
 {
-static int cycleCount = 0;
-cycleCount++;
     InstructionType type;
     string name;
 
@@ -44,21 +43,23 @@ cycleCount++;
     if(ROB.GetNumEntries() > 0)
     {
         robHeadIndex = ROB.GetHeadNumber();
-        type = ROB[robHeadIndex].instruction.info.type;
-        name = ROB[robHeadIndex].instruction.info.name;
-        if(ROB[robHeadIndex].state == Cmt)
+        currentROB = ROB.GetEntry(robHeadIndex);
+        type = currentROB.instruction.info.type;
+        name = currentROB.instruction.info.name;
+        if(currentROB.state == Cmt)
         {
-cout << "Cycle " << cycleCount << ": " << ROB[robHeadIndex].instruction.instructionString << endl;
             if(!name.compare("BREAK"))
                 commitType = breakCmt;
             else if(!name.compare("NOP"))
                 commitType = nopCmt;
             else if(type == SPECIAL || type == IMMEDIATE || !name.compare("LD"))
                 commitType = wrReg;
-            else if(!name.compare("SD"))
+            else if(!name.compare("SW"))
                 commitType = wrMem;
-            else if(type == BRANCH || type == JUMP || type == REGIMM)
+            else if(type == BRANCH || type == REGIMM)
                 commitType = brCmt;
+            else if(type == JUMP)
+                commitType = jmpCmt;
             readyToCommit = true;
         }
     }
@@ -73,41 +74,46 @@ void Commit::CompleteCycle()
 {
     CDB_Entry mispredictEntry;
     vector<CDB_Entry> cdbWrite;
+    RF_Entry regEntry;
 
     if(readyToCommit)
     {
-        int dest = ROB[robHeadIndex].destinationAddress;
-        int val = ROB[robHeadIndex].value;
+        int dest = currentROB.destinationAddress;
+        int val = currentROB.value;
 
-        bool brPredict = ROB[robHeadIndex].instruction.branchHandle.prediction;
-        bool brOutcome = ROB[robHeadIndex].instruction.branchHandle.outcome;
-        int brDest = ROB[robHeadIndex].instruction.branchHandle.destination;
-        int brPC = ROB[robHeadIndex].instruction.PC + 4;
+        bool brPredict = currentROB.instruction.branchHandle.prediction;
+        bool brOutcome = currentROB.instruction.branchHandle.outcome;
+        int brDest = currentROB.instruction.branchHandle.destination;
+        int brPC = currentROB.instruction.PC;
 
         switch(commitType)
         {
             case breakCmt:
                 programFinished = true;
+                ROB.ClearEntry(robHeadIndex);
                 break;
             case nopCmt:
                 ROB.ClearEntry(robHeadIndex);
                 break;
             case wrReg:
-                RF[dest].value = val;
-                RF[dest].busy = false;
+                regEntry.value = val;
+                regEntry.busy = false;
+                RF.SetReg(dest, regEntry);
                 RS.MakeEntryAvailable(robHeadIndex);
                 ROB.ClearEntry(robHeadIndex);
                 break;
             case wrMem:
-                memory[dest] = val;
+                memory.SetValue(dest, val);
                 RS.MakeEntryAvailable(robHeadIndex);
                 ROB.ClearEntry(robHeadIndex);
                 break;
+            case jmpCmt:
+                BTB.UpdatePrediction(brPC, brDest, brOutcome);
             case brCmt:
                 if(brPredict != brOutcome)
                 {
                     mispredictEntry.type = mispredict;
-                    mispredictEntry.value = (brPredict) ? brPC : brDest;
+                    mispredictEntry.value = (brPredict) ? brPC + 4 : brDest;
                     cdbWrite.push_back(mispredictEntry);
                     CDB.Write(cdbWrite);
                     ROB.ClearAll();
@@ -121,5 +127,15 @@ void Commit::CompleteCycle()
                 break;
         }
     }
+}
+
+/**************************************************************
+ *
+ * 		Commit::ReadCDB
+ *
+ **************************************************************/
+void Commit::ReadCDB()
+{
+    CDB.Clear();
 }
 
