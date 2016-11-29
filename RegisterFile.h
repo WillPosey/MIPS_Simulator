@@ -54,7 +54,7 @@ public:
             {
                 content += to_string(registerFileContent[regNum].value);
                 regNum++;
-                if(j!=8)
+                if(j!=7)
                     content += "\t";
             }
             content += "\r\n";

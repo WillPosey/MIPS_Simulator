@@ -61,7 +61,7 @@ public:
     *   Returns a string with the integer value
     *   at each memory location
     ************************************************/
-    string GetDataContent()
+    string GetDataContent(bool newline)
     {
         int startIndex = ( (DATA_START - ADDRESS_START) / 4.0 );
         int address = DATA_START;
@@ -76,7 +76,8 @@ public:
                 content += "\t";
             address+=4;
         }
-        content += "\r\n";
+        if(newline)
+            content += "\r\n";
         return content;
     }
 

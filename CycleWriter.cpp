@@ -68,7 +68,7 @@ void CycleWriter::WriteCycle(InstructionQueue IQ, ReservationStation RS, Reorder
     cycleContent += ROB.GetContent();
     cycleContent += BTB.GetContent();
     cycleContent += RF.GetContents();
-    cycleContent += memory.GetDataContent();
+    cycleContent += memory.GetDataContent(!finalCycle);
 
     if(traceAll)
         outStream << cycleContent;

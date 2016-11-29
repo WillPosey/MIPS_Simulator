@@ -137,7 +137,7 @@ bool BranchTargetBuffer::EntryExists(int srcAddress)
  **************************************************************/
 string BranchTargetBuffer::GetEntryString(BTB_Entry* entry)
 {
-    string entryString = "[Entry "  + to_string(indexHashTable[entry]) + "]:<"
+    string entryString = "[Entry "  + to_string(indexHashTable[entry]) + "]<"
                                     + to_string(entry->srcAddress) + ","
                                     + to_string(entry->destAddress) + ","
                                     + to_string(entry->prediction) + ">";

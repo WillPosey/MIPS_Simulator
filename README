@@ -1,0 +1,61 @@
+|---------------------------------------------------------------------------------------|
+| README										|
+|											|
+| CDA5155: Computer Architecture Principles						|
+| Project 2: MIPS Simulator								|
+|											|
+| William Posey										|
+| UFID: 0857-1846									|
+| willposey@ufl.edu									|
+|---------------------------------------------------------------------------------------|
+| Files Needed for Build:	Makefile						|
+|				MIPSsimulator.cpp					|
+|				MIPSdefs.h						|
+|				PipelineStage.cpp					|
+|				PipelineStage.h						|
+|				InstructionFetch.cpp					|
+|				InstructionFetch.h					|
+|				InstructionDecode.cpp					|
+|				InstructionDecode.h					|
+|				Execute.cpp						|
+|				Execute.h						|
+|				WriteResult.cpp						|
+|				WriteResult.h						|
+|				Commit.cpp						|
+|				Commit.h						|
+|				BranchTargetBuffer.cpp					|
+|				BranchTargetBuffer.h					|
+|				ReservationStation.cpp					|
+|				ReservationStation.h					|
+|				ReorderBuffer.cpp					|
+|				ReorderBuffer.h						|
+|				CycleWriter.cpp						|
+|				CycleWriter.h						|
+|				CommonDataBus.h						|
+|				MainMemory.h						|
+|				RegisterFile.h						|
+|				ProgramLoader.h						|
+|				InstructionQueue.h					|
+|---------------------------------------------------------------------------------------|
+| Executable Name:		MIPSsim							|
+|---------------------------------------------------------------------------------------|
+| Format:			MIPSsim inputfilename outputfilename [-Tm:n]		|
+|---------------------------------------------------------------------------------------|
+| Format explanation:		inputfilename - binary input file			|
+|				outputfilename - filename to which to print the output	|
+|				-Tm:n - Optional argument to specify start (m) and 	|
+|					end (n) cycles of simulation tracing output	|
+|---------------------------------------------------------------------------------------|
+| Instructions:			-Use "make" to compile the MIPSsim executable		|
+|				-Use "make clean" to remove object files and the MIPSsim|
+|			 	 executable						|
+|---------------------------------------------------------------------------------------|
+| Assumptions:			-Input file is indeed a binary file			|
+|				-Output file path does exist				|
+|				-Each line of the output file should end with a carriage|
+|				 return and line feed "\r\n", similar to the sample	|
+|				 output file given					|
+|---------------------------------------------------------------------------------------|
+| HONOR CODE: 			On my honor, I have neither given nor received		|
+|				unauthorized aid on this assignment.			|
+|---------------------------------------------------------------------------------------|
