@@ -21,6 +21,7 @@
 
 using namespace std;
 
+/* Type of instruction being committed */
 typedef enum
 {
     wrReg,
@@ -31,6 +32,7 @@ typedef enum
     breakCmt
 } CmtType;
 
+/* Commit class declaration */
 class Commit : public virtual PipelineStage
 {
 public:
@@ -38,8 +40,8 @@ public:
     void RunCycle();
     void CompleteCycle();
     void ReadCDB();
-private:
 
+private:
     bool readyToCommit;
     int robHeadIndex;
     CmtType commitType;

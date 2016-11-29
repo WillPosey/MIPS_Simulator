@@ -17,9 +17,11 @@
 #include "CommonDataBus.h"
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
+/* InstructionDecode class definition */
 class InstructionDecode : public virtual PipelineStage
 {
 public:

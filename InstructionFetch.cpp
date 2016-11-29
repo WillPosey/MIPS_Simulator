@@ -41,6 +41,7 @@ void InstructionFetch::RunCycle()
 
     GetNextInstruction();
     InstructionType type = currentInstruction.info.type;
+
     if(type == BRANCH || type == JUMP || type == REGIMM)
         CheckBTB();
     else
@@ -57,8 +58,7 @@ void InstructionFetch::CompleteCycle()
     if(programCounter >= DATA_START || lastInstruction)
         return;
 
-    if(breakFound)
-        lastInstruction = true;
+    lastInstruction = breakFound;
 
     WriteToQueue();
 }
@@ -133,12 +133,21 @@ void InstructionFetch::IncrementProgramCounter()
 
 /**************************************************************
  *
+ * 		InstructionFetch::WriteToQueue
+ *
+ **************************************************************/
+void InstructionFetch::WriteToQueue()
+{
+    IQ.Write(currentInstruction);
+}
+
+/**************************************************************
+ *
  * 		InstructionFetch::GetNextInstruction
  *
  **************************************************************/
 void InstructionFetch::GetNextInstruction()
 {
-    // clear struct
     currentInstruction.binary = 0;
     currentInstruction.binaryString = "";
     currentInstruction.PC = programCounter;
@@ -156,16 +165,6 @@ void InstructionFetch::GetNextInstruction()
 
     currentInstruction.binary = memory.GetValue(programCounter);
     GetInstructionInfo();
-}
-
-/**************************************************************
- *
- * 		InstructionFetch::WriteToQueue
- *
- **************************************************************/
-void InstructionFetch::WriteToQueue()
-{
-    IQ.Write(currentInstruction);
 }
 
 /**************************************************************
@@ -282,11 +281,9 @@ void InstructionFetch::BinaryStringToInstruction()
 }
 
 /**********************************************************************************************
- * 		Method:			InstructionFetch::GetInstructionType
  *
- * 		Parameters:     string: the opcode of the binary instruction
- * 		Return:         InstructionType: the type of the instruction
- * 		Description:    used the opcode to determine the type of the corresponding instruction
+ * 		InstructionFetch::GetInstructionType
+ *
  **********************************************************************************************/
 InstructionType InstructionFetch::GetInstructionType(string opcode)
 {
@@ -304,11 +301,9 @@ InstructionType InstructionFetch::GetInstructionType(string opcode)
 }
 
 /****************************************************************************************************************************
- * 		Method:			InstructionFetch::GetInstructionName
  *
- * 		Parameters:     MemoryLocation: structure holding location information, used for instruction type
- * 		Return:         string: assembly name of instruction
- * 		Description:    uses the MemoryLocation type to return the name of the instruction at that address as a string
+ * 		InstructionFetch::GetInstructionName
+ *
  ****************************************************************************************************************************/
 string InstructionFetch::GetInstructionName(InstructionType type, string opcode, string binaryString, uint32_t binaryValue)
 {
@@ -336,11 +331,9 @@ string InstructionFetch::GetInstructionName(InstructionType type, string opcode,
 }
 
 /**************************************************************************************************
- * 		Method:			InstructionFetch::GetMemoryInstructionName
  *
- * 		Parameters:     string: the opcode
- * 		Return:         string: the instrucion name for a memory type instruction
- * 		Description:    returns the instruction name for a memory type instruction using the opcode
+ * 		InstructionFetch::GetMemoryInstructionName
+ *
  **************************************************************************************************/
 string InstructionFetch::GetMemoryInstructionName(string opcode)
 {
@@ -351,11 +344,9 @@ string InstructionFetch::GetMemoryInstructionName(string opcode)
 }
 
 /**********************************************************************************************************
- * 		Method:			InstructionFetch::GetImmediateInstructionName
  *
- * 		Parameters:     string: the opcode
- * 		Return:         string: the instrucion name for an immediate type instruction
- * 		Description:    returns the instruction name for an immediate type instruction using the opcode
+ * 		InstructionFetch::GetImmediateInstructionName
+ *
  **********************************************************************************************************/
 string InstructionFetch::GetImmediateInstructionName(string opcode)
 {
@@ -368,11 +359,9 @@ string InstructionFetch::GetImmediateInstructionName(string opcode)
 }
 
 /**********************************************************************************************************
- * 		Method:			InstructionFetch::GetBranchInstructionName
  *
- * 		Parameters:     string: the opcode
- * 		Return:         string: the instrucion name for a branch type instruction
- * 		Description:    returns the instruction name for a branch type instruction using the opcode
+ * 		InstructionFetch::GetBranchInstructionName
+ *
  **********************************************************************************************************/
 string InstructionFetch::GetBranchInstructionName(string opcode)
 {
@@ -390,11 +379,9 @@ string InstructionFetch::GetBranchInstructionName(string opcode)
 }
 
 /******************************************************************************************
- * 		Method:			InstructionFetch::GetJumpInstructionName
  *
- * 		Parameters:
- * 		Return:         string: the instrucion name for a jump type instruction
- * 		Description:    returns the instruction name for a jump type instruction
+ * 		InstructionFetch::GetJumpInstructionName
+ *
  ******************************************************************************************/
 string InstructionFetch::GetJumpInstructionName()
 {
@@ -402,11 +389,9 @@ string InstructionFetch::GetJumpInstructionName()
 }
 
 /************************************************************************************************************
- * 		Method:			InstructionFetch::GetRegimmInstructionName
  *
- * 		Parameters:     string: the function type for regimm instruction
- * 		Return:         string: the instrucion name for a regimm type instruction
- * 		Description:    returns the instruction name for a regimm type instruction using the function
+ * 		InstructionFetch::GetRegimmInstructionName
+ *
  ************************************************************************************************************/
 string InstructionFetch::GetRegimmInstructionName(string funct)
 {
@@ -417,11 +402,9 @@ string InstructionFetch::GetRegimmInstructionName(string funct)
 }
 
 /************************************************************************************************************
- * 		Method:			InstructionFetch::GetSpecialInstructionName
  *
- * 		Parameters:     string: the function type for special instruction
- * 		Return:         string: the instrucion name for a special type instruction
- * 		Description:    returns the instruction name for a special type instruction using the function
+ * 		InstructionFetch::GetSpecialInstructionName
+ *
  ************************************************************************************************************/
 string InstructionFetch::GetSpecialInstructionName(string funct)
 {
@@ -478,11 +461,9 @@ string InstructionFetch::GetSpecialInstructionName(string funct)
 }
 
 /******************************************************************************************
- * 		Method:			InstructionFetch::GetRegister
  *
- * 		Parameters:     uint8_t: 5 bit register value
- * 		Return:         string: register name
- * 		Description:    uses 5 bit register value to index global registerNames array
+ * 		InstructionFetch::GetRegister
+ *
  ******************************************************************************************/
 string InstructionFetch::GetRegister(uint8_t regVal)
 {
@@ -490,13 +471,9 @@ string InstructionFetch::GetRegister(uint8_t regVal)
 }
 
 /**********************************************************************************
- * 		Method:			InstructionFetch::GetJumpAddress
  *
- * 		Parameters:     uint32_t: 26 bit jump address
- *                      uint32_t: current program counter address
- * 		Return:         string: string representation of jump address
- * 		Description:    takes jump address and program counter address to return
- *                      string representation of resolved jump address
+ * 		InstructionFetch::GetJumpAddress
+ *
  **********************************************************************************/
 string InstructionFetch::GetJumpAddress(uint32_t jumpAddress, uint32_t pcAddress)
 {
@@ -509,11 +486,9 @@ string InstructionFetch::GetJumpAddress(uint32_t jumpAddress, uint32_t pcAddress
 }
 
 /******************************************************************************************
- * 		Method:			InstructionFetch::GetShiftAmount
  *
- * 		Parameters:     uint8_t: 5 bit shift amount
- * 		Return:         string: decimal shift amount
- * 		Description:    converts 5 bit binary shift amount to decimal string
+ * 		InstructionFetch::GetShiftAmount
+ *
  ******************************************************************************************/
 string InstructionFetch::GetShiftAmount(uint8_t binary)
 {
@@ -523,12 +498,9 @@ string InstructionFetch::GetShiftAmount(uint8_t binary)
 }
 
 /******************************************************************************************
- * 		Method:			InstructionFetch::GetImmediateValue
  *
- * 		Parameters:     uint16_t: 16 bit immediate value
- *                      bool: if immediate value is unsigned (default to false)
- * 		Return:         string: decimal immediate value
- * 		Description:    converts signed or unsigned immediate value to decimal string
+ * 		InstructionFetch::GetImmediateValue
+ *
  ******************************************************************************************/
 string InstructionFetch::GetImmediateValue(uint16_t binary, bool unsignedValue)
 {
@@ -551,11 +523,9 @@ string InstructionFetch::GetImmediateValue(uint16_t binary, bool unsignedValue)
 }
 
 /*****************************************************************************************************
- * 		Method:			InstructionFetch::GetMemoryOffset
  *
- * 		Parameters:     uint16_t: 16 bit offset value
- * 		Return:         string: decimal offset value
- * 		Description:    converts 16 bit binary offset value from memory instruction to decimal string
+ * 		InstructionFetch::GetMemoryOffset
+ *
  *****************************************************************************************************/
 string InstructionFetch::GetMemoryOffset(uint16_t binary)
 {
@@ -571,11 +541,9 @@ string InstructionFetch::GetMemoryOffset(uint16_t binary)
 }
 
 /***********************************************************************************************************
- * 		Method:			InstructionFetch::GetBranchOffset
  *
- * 		Parameters:     uint16_t: 16 bit offset value
- * 		Return:         string: decimal offset value
- * 		Description:    converts 16 bit binary offset value from branch instruction to decimal string
+ * 		InstructionFetch::GetBranchOffset
+ *
  ***********************************************************************************************************/
 string InstructionFetch::GetBranchOffset(uint16_t binary)
 {

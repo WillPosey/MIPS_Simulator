@@ -18,7 +18,7 @@
 
 using namespace std;
 
-// numder of bytes for 32 bit MIPS instruction
+/* numder of bytes for 32 bit MIPS instruction */
 #define INSTRUCTION_SIZE_BYTES 4
 
 /*******************************************************/
@@ -59,7 +59,7 @@ using namespace std;
 #define SPECIAL_SA_SHIFT        6
 /*******************************************************/
 
-// arrays holding the instruction names for each instruction type
+/* arrays holding the instruction names for each instruction type */
 static const string memoryInstructionNames[]    = {"LW","SW"};
 static const string immediateInstructionNames[] = {"ADDI","ADDIU","SLTI"};
 static const string branchInstructionNames[]    = {"BEQ","BNE","BLEZ","BGTZ"};
@@ -67,7 +67,7 @@ static const string jumpInstructionNames[]      = {"J"};
 static const string regimmInstructionNames[]    = {"BLTZ","BGEZ"};
 static const string specialInstructionNames[]   = {"NOP","SLL","SRL","SRA","BREAK","ADD","ADDU","SUB","SUBU","AND","OR","XOR","NOR","SLT","SLTU"};
 
-// array of all instruction names, indexable by the InstructionType enum
+/* array of all instruction names, indexable by the InstructionType enum */
 static const string* instructionNames[]         = {
                                                     memoryInstructionNames,
                                                     immediateInstructionNames,
@@ -77,14 +77,14 @@ static const string* instructionNames[]         = {
                                                     specialInstructionNames
                                                   };
 
-// array of the register names
+/* array of the register names */
 static const string registerNames[]             = {
                                                     "R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10",
                                                     "R11","R12","R13","R14","R15","R16","R17","R18","R19","R20","R21",
                                                     "R22","R23","R24","R25","R26","R27","R28","R29","R30","R31",
                                                   };
 
-// instruction types (used for decoding)
+/* instruction types (used for decoding) */
 typedef enum
 {
     MEMORY,
@@ -95,7 +95,7 @@ typedef enum
     SPECIAL
 } InstructionType;
 
-// instruction names (used for indexing instructionNames array)
+/* instruction names (used for indexing instructionNames array) */
 typedef enum
 {
     // Memory
@@ -112,6 +112,7 @@ typedef enum
     NOP=0,SLL=1,SRL=2,SRA=3,BREAK=4,ADD=5,ADDU=6,SUB=7,SUBU=8,AND=9,OR=10,XOR=11,NOR=12,SLT=13,SLTU=14
 } instr_names;
 
+/* Holds branch prediction information for branch/jump instructions */
 struct BranchPrediction
 {
     int destination;
@@ -119,6 +120,7 @@ struct BranchPrediction
     bool outcome;
 };
 
+/* Holds all the information for the instruction type, name, etc */
 struct InstructionInfo
 {
     InstructionType type;
@@ -131,6 +133,7 @@ struct InstructionInfo
     int immVal;
 };
 
+/* Holds all information regarding an instruction */
 struct Instruction
 {
     int PC;

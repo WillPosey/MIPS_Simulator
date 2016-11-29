@@ -11,13 +11,10 @@
 #include "MIPSdefs.h"
 
 #include <string>
-#include <vector>
-#include <unordered_map>
 
 using namespace std;
 
-static const string robNames[] = {"ROB0", "ROB1", "ROB2", "ROB3", "ROB4", "ROB5"};
-
+/* ROB State Types */
 typedef enum
 {
     Ex,
@@ -25,6 +22,7 @@ typedef enum
     Cmt
 } ROB_State;
 
+/* ROB Destination Types */
 typedef enum
 {
     Reg,
@@ -32,6 +30,7 @@ typedef enum
     Br
 } DestinationType;
 
+/* ROB_Entry struct definition */
 struct ROB_Entry
 {
     int entryNum;
@@ -52,20 +51,21 @@ struct ROB_Entry
                     {}
 };
 
+/* ReorderBuffer class definition */
 class ReorderBuffer
 {
 public:
-    ReorderBuffer(){numEntries = 0; robHead = 1; robNextEntry = 1;}
+    ReorderBuffer()                             {numEntries = 0; robHead = 1; robNextEntry = 1;}
+    bool Available()                            {return (numEntries < 6);}
+    ROB_Entry GetEntry(int robNum)              {return rob[robNum-1];}
+    void SetEntry(int robNum, ROB_Entry update) {rob[robNum-1] = update;}
+    int GetNumEntries()                         {return numEntries;}
+    int GetHeadNumber()                         {return robHead;}
 
-    bool Available(){return (numEntries < 6);}
     int CreateEntry(ROB_Entry newEntry);
     int GetEntryByDestination(int regNum);
-    ROB_Entry GetEntry(int robNum){return rob[robNum-1];}
-    void SetEntry(int robNum, ROB_Entry update){rob[robNum-1] = update;}
     bool CheckAddressCalc(int robNum);
     bool CheckLoadProceed(int robNum, int address);
-    int GetNumEntries(){return numEntries;}
-    int GetHeadNumber(){return robHead;}
     void ClearEntry(int entryNum);
     void ClearAll();
     string GetContent();

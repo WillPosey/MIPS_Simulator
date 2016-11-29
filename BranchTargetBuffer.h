@@ -12,7 +12,6 @@
 #include <unordered_map>
 #include <cstddef>
 
-
 using namespace std;
 
 /* Branch Target Buffer Entry Struct Definition */
@@ -43,6 +42,7 @@ public:
     void CreateEntry(int srcAddress, int destAddress, bool prediction);
     void UpdatePrediction(int srcAddress, int destAddress, bool prediction);
     string GetContent();
+
 private:
     bool EntryExists(int srcAddress);
     string GetEntryString(BTB_Entry* entry);
@@ -51,8 +51,8 @@ private:
     void PlaceMRU(BTB_Entry* accessedEntry);
 
     unordered_map<int,BTB_Entry*> hashTable;
-    unordered_map<BTB_Entry*,int> indexHashTable;           // used to print in order
-    unordered_map<int,BTB_Entry*> reverseIndexHashTable;   // used to print in order
+    unordered_map<BTB_Entry*,int> indexHashTable;
+    unordered_map<int,BTB_Entry*> reverseIndexHashTable;
     BTB_Entry* LRU;
     BTB_Entry* MRU;
     int numEntries;

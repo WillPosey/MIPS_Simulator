@@ -7,8 +7,6 @@
  ************************************************/
 #include "WriteResult.h"
 
-#include <iostream>
-
 using namespace std;
 
 /**************************************************************
@@ -21,7 +19,6 @@ WriteResult::WriteResult(ReservationStation& rsRef, ReorderBuffer& robRef, Commo
     ROB(robRef),
     CDB(cdbRef)
 {
-
 }
 
 /**************************************************************
@@ -34,7 +31,6 @@ void WriteResult::RunCycle()
     InstructionType type;
     string name;
     CDB_Entry cdbEntry;
-    bool readyToWrite;
 
     cdbWrite.clear();
     cdbEntry.type = rob;
@@ -47,9 +43,7 @@ void WriteResult::RunCycle()
             type = currentRS.instruction.info.type;
             name = currentRS.instruction.info.name;
 
-            readyToWrite = (type == SPECIAL || type == IMMEDIATE || (!name.compare("LW")) );
-
-            if(readyToWrite)
+            if(type == SPECIAL || type == IMMEDIATE || (!name.compare("LW")) )
             {
                 currentRS.hasWritten = true;
                 RS.SetEntry(i, currentRS);

@@ -15,6 +15,7 @@
 
 using namespace std;
 
+/* InstructionQueue class declaration */
 class InstructionQueue
 {
 public:

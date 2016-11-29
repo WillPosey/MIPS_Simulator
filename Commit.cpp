@@ -7,8 +7,6 @@
  ************************************************/
 #include "Commit.h"
 
-#include <iostream>
-
 using namespace std;
 
 /**************************************************************
@@ -25,7 +23,6 @@ Commit::Commit(MainMemory& memRef, BranchTargetBuffer& btbRef, ReservationStatio
     CDB(cdbRef),
     programFinished(progComplete)
 {
-
 }
 
 /**************************************************************

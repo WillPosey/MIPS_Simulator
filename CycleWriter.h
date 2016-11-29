@@ -4,6 +4,7 @@
  *      Author: William Posey
  *      Course: CDA 5155
  *      Project 2: MIPS Simulator
+
  ************************************************/
 #ifndef CYCLE_WRITER_H
 #define CYCLE_WRITER_H
@@ -20,12 +21,19 @@
 
 using namespace std;
 
+/* CycleWriter class definition */
 class CycleWriter
 {
 public:
     CycleWriter(int argc, char** argv);
     void SetTraceParameter(string traceParam);
-    void WriteCycle(InstructionQueue IQ, ReservationStation RS, ReorderBuffer ROB, BranchTargetBuffer BTB, RegisterFile RF, MainMemory memory, bool finalCycle);
+    void WriteCycle(InstructionQueue IQ,
+                    ReservationStation RS,
+                    ReorderBuffer ROB,
+                    BranchTargetBuffer BTB,
+                    RegisterFile RF,
+                    MainMemory memory,
+                    bool finalCycle);
 private:
     ofstream outStream;
     int traceStart;

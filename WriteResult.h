@@ -14,10 +14,12 @@
 #include "ReorderBuffer.h"
 #include "CommonDataBus.h"
 
+#include <vector>
 #include <string>
 
 using namespace std;
 
+/* WriteResult class declaration */
 class WriteResult : public virtual PipelineStage
 {
 public:
@@ -25,8 +27,8 @@ public:
     void RunCycle();
     void CompleteCycle();
     void ReadCDB(){};
-private:
 
+private:
     vector<CDB_Entry> cdbWrite;
 
     RS_Entry currentRS;

@@ -16,6 +16,7 @@
 
 using namespace std;
 
+/* Reservation Station struct definition */
 struct RS_Entry
 {
     bool busy;
@@ -45,6 +46,7 @@ struct RS_Entry
                 {}
 };
 
+/* ReservationStation class definition */
 class ReservationStation
 {
 public:

@@ -13,6 +13,7 @@
 
 using namespace std;
 
+/* Struct used to represent a register in the RF */
 struct RF_Entry
 {
     bool busy;
@@ -25,14 +26,15 @@ struct RF_Entry
                 {}
 };
 
+/* RegisterFile class declaration */
 class RegisterFile
 {
 public:
-    RF_Entry GetReg(int regNum){return registerFileContent[regNum];}
-    void SetReg(int regNum, RF_Entry update){registerFileContent[regNum] = update;}
-    bool IsBusy(int regNum){return registerFileContent[regNum].busy;}
-    int GetROB(int regNum){return registerFileContent[regNum].robNumber;}
-    int GetValue(int regNum){return registerFileContent[regNum].value;}
+    RF_Entry GetReg(int regNum)                 {return registerFileContent[regNum];}
+    void SetReg(int regNum, RF_Entry update)    {registerFileContent[regNum] = update;}
+    bool IsBusy(int regNum)                     {return registerFileContent[regNum].busy;}
+    int GetROB(int regNum)                      {return registerFileContent[regNum].robNumber;}
+    int GetValue(int regNum)                    {return registerFileContent[regNum].value;}
 
     /* Returns content of all registers as a string */
     string GetContents()

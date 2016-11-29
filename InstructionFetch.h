@@ -16,10 +16,10 @@
 #include "CommonDataBus.h"
 
 #include <string>
-#include <fstream>
 
 using namespace std;
 
+/* InstructionFetch class definition */
 class InstructionFetch : public virtual PipelineStage
 {
 public:

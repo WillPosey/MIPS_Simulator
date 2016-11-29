@@ -7,8 +7,6 @@
  ************************************************/
 #include "InstructionDecode.h"
 
-#include <iostream>
-#include <sstream>
 #include <vector>
 
 using namespace std;
@@ -25,7 +23,6 @@ InstructionDecode::InstructionDecode(InstructionQueue& iqRef, ReservationStation
     RF(rfRef),
     CDB(cdbRef)
 {
-
 }
 
 /**************************************************************
@@ -44,7 +41,7 @@ void InstructionDecode::RunCycle()
         currentInstruction = IQ.Read();
 
         /* NOP and BREAK only need a ROB entry */
-        if(currentInstruction.info.name.compare("NOP") == 0 || currentInstruction.info.name.compare("BREAK") == 0)
+        if(!currentInstruction.info.name.compare("NOP") || !currentInstruction.info.name.compare("BREAK"))
         {
             if(ROB.Available())
             {
@@ -72,7 +69,6 @@ void InstructionDecode::RunCycle()
             rsEntry.hasExecuted = false;
             GetOperands();
             GetDestination();
-            /* determine operands, destination, etc */
         }
         else
             stall = true;
@@ -95,9 +91,7 @@ void InstructionDecode::CompleteCycle()
 
     /* Fill out ROB for NOP or BREAK instruction; bypass reservation station */
     if(nop_break)
-    {
         ROB.CreateEntry(robEntry);
-    }
     /* Fill out reservation station and reorder buffer entries */
     else
     {

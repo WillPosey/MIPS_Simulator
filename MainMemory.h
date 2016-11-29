@@ -14,13 +14,16 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include <iostream>
 
 using namespace std;
 
+/* MainMemory class declaration */
 class MainMemory
 {
 public:
+    /************************************************
+    *   MainMemory::GetValue
+    ************************************************/
     int32_t GetValue(int address)
     {
         int realIndex = (address-ADDRESS_START) / 4.0;
@@ -35,6 +38,9 @@ public:
         return memoryContent[realIndex];
     }
 
+    /************************************************
+    *   MainMemory::SetValue
+    ************************************************/
     void SetValue(int address, int value)
     {
         int realIndex = (address-ADDRESS_START) / 4.0;
@@ -49,7 +55,12 @@ public:
         memoryContent[realIndex] = value;
     }
 
-    /* Returns a string with the integer value at each memory location */
+
+    /************************************************
+    *   MainMemory::GetDataContent
+    *   Returns a string with the integer value
+    *   at each memory location
+    ************************************************/
     string GetDataContent()
     {
         int startIndex = ( (DATA_START - ADDRESS_START) / 4.0 );

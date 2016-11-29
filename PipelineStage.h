@@ -12,6 +12,8 @@
 
 using namespace std;
 
+/* Abstract base class */
+/* PipelineStage class declaration */
 class PipelineStage
 {
 public:

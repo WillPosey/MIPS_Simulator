@@ -21,9 +21,7 @@ int ReorderBuffer::CreateEntry(ROB_Entry newEntry)
         int newEntryNum = robNextEntry;
         rob[robNextEntry-1] = newEntry;
         numEntries++;
-        robNextEntry++;
-        if(robNextEntry == 7)
-            robNextEntry = 1;
+        robNextEntry = (robNextEntry==6) ? 1 : robNextEntry+1;
 
         return newEntryNum;
     }
@@ -49,9 +47,7 @@ int ReorderBuffer::GetEntryByDestination(int regNum)
             robNum = curIndex+1;
             break;
         }
-        curIndex++;
-        if(curIndex > 5)
-            curIndex = 0;
+        curIndex = (curIndex==5) ? 0 : curIndex+1;
     }while(counter <= numEntries);
 
     return robNum;
@@ -70,28 +66,17 @@ bool ReorderBuffer::CheckAddressCalc(int robNum)
     bool allBeforeCalculated = true;
     int curIndex, stopIndex;
 
-    if(robNum == 1)
-        curIndex = 5;
-    else
-        curIndex = robNum-2;
-
-    stopIndex = robHead - 2;
-    if(stopIndex < 0)
-        stopIndex = 5;
+    curIndex = (robNum==1) ? 5 : robNum-2;
+    stopIndex = ((robHead-2) < 0) ? 5 : robHead-2;
 
     do
     {
-        if(rob[curIndex].busy && rob[curIndex].instruction.info.type == MEMORY)
+        if( (rob[curIndex].busy) && (rob[curIndex].instruction.info.type == MEMORY) && (!rob[curIndex].addressPresent) )
         {
-            if(!rob[curIndex].addressPresent)
-            {
-                allBeforeCalculated = false;
-                break;
-            }
+            allBeforeCalculated = false;
+            break;
         }
-        curIndex--;
-        if(curIndex < 0)
-            curIndex = 5;
+        curIndex = (curIndex==0) ? 5 : curIndex-1;
     }while(curIndex!=stopIndex);
 
     return allBeforeCalculated;
@@ -110,14 +95,8 @@ bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
     bool storeComplete = true;
     int curIndex, stopIndex;
 
-    if(robNum == 1)
-        curIndex = 5;
-    else
-        curIndex = robNum-2;
-
-    stopIndex = robHead - 2;
-    if(stopIndex < 0)
-        stopIndex = 5;
+    curIndex = (robNum==1) ? 5 : robNum-2;
+    stopIndex = ((robHead-2) < 0) ? 5 : robHead-2;
 
     do
     {
@@ -126,9 +105,7 @@ bool ReorderBuffer::CheckLoadProceed(int robNum, int address)
             if(rob[curIndex].destinationAddress == address)
                 storeComplete = false;
         }
-        curIndex--;
-        if(curIndex < 0)
-            curIndex = 5;
+        curIndex = (curIndex==0) ? 5 : curIndex-1;
     }while(curIndex!=stopIndex);
 
     return storeComplete;
@@ -173,9 +150,7 @@ string ReorderBuffer::GetContent()
     for(int i=0; i<numEntries; i++)
     {
         content += "[" + rob[curIndex].instruction.instructionString + "]\r\n";
-        curIndex++;
-        if(curIndex == 6)
-            curIndex = 0;
+        curIndex = (curIndex == 5) ? 0 : curIndex+1;
     }
     return content;
 }

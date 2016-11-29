@@ -9,14 +9,19 @@
 #define PROG_LOADER_H
 
 #include "MainMemory.h"
+
 #include <string>
 #include <fstream>
 
 using namespace std;
 
+/* ProgramLoader class declaration */
 class ProgramLoader
 {
 public:
+    /************************************************
+     *      ProgramLoader Constructor
+     ************************************************/
     ProgramLoader (string filename, MainMemory& memory)
     {
         uint8_t byte;

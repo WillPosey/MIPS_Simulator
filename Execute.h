@@ -18,9 +18,11 @@
 #include "CommonDataBus.h"
 
 #include <string>
+#include <vector>
 
 using namespace std;
 
+/* execution result types */
 typedef enum
 {
     branchOutcome,
@@ -31,6 +33,7 @@ typedef enum
     sdMem
 } ExResultType;
 
+/* contains information regarding the result of an instruction's execution */
 struct ExResult
 {
     int rsIndex;
@@ -39,6 +42,7 @@ struct ExResult
     int address;
 };
 
+/* Execute class declaration */
 class Execute : public virtual PipelineStage
 {
 public:

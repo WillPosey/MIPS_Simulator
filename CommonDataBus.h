@@ -15,6 +15,7 @@
 
 using namespace std;
 
+/* types of data on CDB */
 typedef enum
 {
     rob,
@@ -23,6 +24,7 @@ typedef enum
     mispredict
 } CDB_Type;
 
+/* entry on CDB */
 struct CDB_Entry
 {
     CDB_Type type;
@@ -30,12 +32,14 @@ struct CDB_Entry
     int value;
 };
 
+/* RS operands listened for on CDB */
 typedef enum
 {
     RS_j,
     RS_k
 } RS_Operand;
 
+/* data listened for on CDB */
 struct ListenCDB
 {
     int destination;
@@ -43,6 +47,7 @@ struct ListenCDB
     RS_Operand operand;
 };
 
+/* CommonDataBus class declaration */
 class CommonDataBus
 {
 public:
